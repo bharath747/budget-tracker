@@ -292,7 +292,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     monthValue.totalExpenses = parseInt(monthValue.totalExpenses) - parseInt(expense.amount);
                     store.put(monthValue);
 
-                    updateSummaryObject($scope.expense.amount);
+                    updateSummaryObject(expense.amount);
                 }
             };
 
@@ -430,16 +430,17 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                 var query = store.get(getSummaryKey());
                 query.onsuccess = function () {
                     var summaryObj = query.result ? query.result : getDefaultObject($scope.DEFAULT_OBJECTS.SUMMARY_KEY);
-                    summaryObj.finalAmount = summaryObj.finalAmount > 0 ? parseInt(summaryObj.finalAmount) + parseInt(amount) : 0;
+                    summaryObj.finalAmount = summaryObj.finalAmount > 0 ? parseInt(summaryObj.finalAmount) + parseInt(amount) : parseInt(amount) + parseInt(summaryObj.finalAmount);
                     summaryObj.finalAmountDate = new Date();
                     store.put(summaryObj);
                 };
 
                 transaction.oncomplete = function () {
                     db.close();
+                    window.location.reload();
                 };
 
-                $scope.fetchTransactions();
+                //$scope.fetchTransactions();
             };
 
             connection.onerror = function (event) {
@@ -591,6 +592,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     var backup = JSON.parse(text);
                     restoreDataFromJson(backup);
                     alert('Imported ' + Object.keys(backup).length + ' items from backup.')
+                    window.location.reload();
                 };
                 reader.readAsText(f);
             } else {
@@ -719,6 +721,10 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         }
         return null;
     };
+
+    $scope.getDisplayDate = function(date) {
+        return getFormattedDateAndTime(date);
+    }
 
     function getFormattedDateTime (date) {
         if (date) {
