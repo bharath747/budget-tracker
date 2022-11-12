@@ -925,7 +925,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     var monthQueryResult = monthQuery.result ? monthQuery.result : [];
                     angular.forEach(monthQueryResult, function(monthWiseResult) {
                         var filteredResults = monthWiseResult.expenses.filter(function (expense) {
-                            return ($scope.filtersInfo.filters.indexOf(expense.description) === -1);
+                            return ($scope.filtersInfo.filters.indexOf(expense.description) === -1 && !hasText($scope.filtersInfo.filters, expense.description));
                         });
                         $scope.totalExpenses.transactions = $scope.totalExpenses.transactions.concat(filteredResults);
                         $scope.totalExpenses.totalAmount = monthWiseResult.totalExpenses + $scope.totalExpenses.totalAmount;
@@ -941,6 +941,16 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             console.error("An error occurred with IndexedDB");
             console.error(event);
         };
+    }
+
+    function hasText(list, text) {
+        hastextValue = false;
+        if (text != null && list != null && list.length > 0) {
+            angular.forEach(list, function(value) {
+                hasTextValue = text.toLowerCase().indexOf(value.toLowerCase()) > -1;
+            })
+        }
+        return hasTextValue;
     }
 
 });
