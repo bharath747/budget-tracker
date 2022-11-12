@@ -120,12 +120,104 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             console.error(event);
         };
     }
+
+
+    $scope.filterName = null;
+
+    $scope.addFilter = function () {
+        const request = initializeDBConnection();
+
+        request.onsuccess = function () {
+            const db = request.result;
+            const transaction = db.transaction($scope.STORES.FILTERS_INFO, "readwrite");
+
+            const store = transaction.objectStore($scope.STORES.FILTERS_INFO);
+
+            var query = store.get(1);
+            query.onsuccess = function () {
+                var filtersInfoObj = query.result ? query.result : getDefaultObject($scope.DEFAULT_OBJECTS.FILTERS_INFO_KEY);
+                filtersInfoObj.filters.push($scope.filterName);
+                store.put(filtersInfoObj);
+            };
+
+            transaction.oncomplete = function () {
+                db.close();
+            };
+
+            $scope.refreshFiltersInfo();
+        };
+
+        request.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    };
+
+    $scope.deleteFilter = function (filterName) {
+        const request = initializeDBConnection();
+
+        request.onsuccess = function () {
+            const db = request.result;
+            const transaction = db.transaction($scope.STORES.FILTERS_INFO, "readwrite");
+
+            const store = transaction.objectStore($scope.STORES.FILTERS_INFO);
+
+            var query = store.get(1);
+            query.onsuccess = function () {
+                if (query.result) {
+                    var filtersInfoObj = query.result;
+                    var updatedList = filtersInfoObj.filters.filter(function (obj) {
+                        return (obj !== filterName);
+                    });
+                    filtersInfoObj.filters = updatedList;
+                    store.put(filtersInfoObj);
+                }
+            };
+
+            transaction.oncomplete = function () {
+                db.close();
+            };
+
+            $scope.refreshFiltersInfo();
+        };
+
+        request.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    };
+
+    $scope.refreshFiltersInfo = function () {
+        const request = initializeDBConnection();
+        request.onsuccess = function () {
+            const db = request.result;
+            const transaction = db.transaction($scope.STORES.FILTERS_INFO, "readwrite");
+
+            const store = transaction.objectStore($scope.STORES.FILTERS_INFO);
+
+            var query = store.get(1);
+            query.onsuccess = function () {
+                $scope.$apply(function () {
+                    $scope.filtersInfo = query.result ? query.result : getDefaultObject($scope.DEFAULT_OBJECTS.FILTERS_INFO_KEY);
+                });
+            };
+            transaction.oncomplete = function () {
+                db.close();
+            };
+        };
+        request.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    }
+
+
     //End of Admin Related
 
 
     $scope.fileName = "backup" + "-" + getFormattedDateTime(new Date());
 
-    $scope.DEFAULT_OBJECTS = {"SUMMARY_KEY" : "summary-key", "MONTH_KEY" : "month-key", "SOURCE_INFO_KEY" : "source-info-key", "MAIN_KEY" : "main-key"};
+    $scope.DEFAULT_OBJECTS = {"SUMMARY_KEY" : "summary-key", "MONTH_KEY" : "month-key", "SOURCE_INFO_KEY" : "source-info-key", "FILTERS_INFO_KEY" : "filters-info-key", "MAIN_KEY" : "main-key"};
 
     $scope.sourceInfo = getDefaultObject($scope.DEFAULT_OBJECTS.SOURCE_INFO_KEY);
     $scope.initialAmount = 0;
@@ -142,12 +234,13 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     $scope.expense = {};
     $scope.credit = {};
     $scope.monthBudget = getDefaultObject($scope.DEFAULT_OBJECTS.MONTH_KEY);
+    $scope.totalExpenses = {transactions : [], totalAmount : 0};
 
     $scope.filter = { "selectedYear": new Date().getFullYear(), "selectedMonth": new Date().getMonth() };
 
 
     $scope.DATABASE = "budget-tracker";
-    $scope.STORES = {SOURCE_SUMMARY : "source-summary", MONTH_SUMMARY : "month-summary", SOURCE_INFO : "source-info"};
+    $scope.STORES = {SOURCE_SUMMARY : "source-summary", MONTH_SUMMARY : "month-summary", SOURCE_INFO : "source-info", FILTERS_INFO : "filters-info"};
 
 
     //Backup and Restore related
@@ -181,6 +274,11 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                 sourceInfoValue.id = getSourceInfoKey();
                 sourceInfoStore.put(sourceInfoValue);
 
+                const filtersInfoStore = db.createObjectStore($scope.STORES.FILTERS_INFO, { keyPath: "id" });
+                var filtersInfoValue = getDefaultObject($scope.DEFAULT_OBJECTS.FILTERS_INFO_KEY);
+                filtersInfoValue.id = getFiltersInfoKey();
+                filtersInfoStore.put(filtersInfoValue);
+
                 const budgetStore = db.createObjectStore($scope.STORES.SOURCE_SUMMARY, { keyPath: "id" });
                 var summaryValue = getDefaultObject($scope.DEFAULT_OBJECTS.SUMMARY_KEY);
                 summaryValue.id = getSummaryKey();
@@ -207,6 +305,18 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     });
                 };
 
+
+                const filterInfoTransaction = db.transaction($scope.STORES.FILTERS_INFO, "readwrite");
+
+                const filtersInfoStore = filterInfoTransaction.objectStore($scope.STORES.FILTERS_INFO);
+
+                var filtersInfoQuery = filtersInfoStore.get(1);
+                filtersInfoQuery.onsuccess = function () {
+                    $scope.$apply(function () {
+                        $scope.filtersInfo = filtersInfoQuery.result ? filtersInfoQuery.result : getDefaultObject($scope.DEFAULT_OBJECTS.FILTERS_INFO_KEY);
+                    });
+                };
+
                 transaction.oncomplete = function () {
                     db.close();
                     return resolve("success");
@@ -226,6 +336,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         setupDataBaseIfDoesNotExist().then(function (result) {
             if (result == "success") {
                 $scope.fetchTransactions();
+                $scope.fetchAnalytics();
             }
         });
     };
@@ -768,6 +879,11 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                 sources : ["default"],
                 selectedSource : "default"
             };
+        } else if (type === $scope.DEFAULT_OBJECTS.FILTERS_INFO_KEY) {
+            return {
+                id : getFiltersInfoKey(),
+                filters : []
+            };
         } else if (type === $scope.DEFAULT_OBJECTS.MAIN_KEY) {
             var obj = {};
             obj[$scope.STORES.SOURCE_INFO] = [getDefaultObject($scope.DEFAULT_OBJECTS.SOURCE_INFO_KEY)];
@@ -789,4 +905,42 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     function getSourceInfoKey() {
         return 1;
     }
+
+    function getFiltersInfoKey() {
+        return 1;
+    }
+
+    $scope.fetchAnalytics = function () {
+        var monthStore = $scope.STORES.MONTH_SUMMARY;
+
+        var connection = initializeDBConnection();
+        connection.onsuccess = function () {
+            const monthDb = connection.result;
+            const monthTransaction = monthDb.transaction(monthStore, "readwrite");
+            const monthSummaryStore = monthTransaction.objectStore(monthStore);
+            var monthQuery = monthSummaryStore.getAll();
+            monthQuery.onsuccess = function () {
+                $scope.$apply(function () {
+                    console.log(monthQuery.result);
+                    var monthQueryResult = monthQuery.result ? monthQuery.result : [];
+                    angular.forEach(monthQueryResult, function(monthWiseResult) {
+                        var filteredResults = monthWiseResult.expenses.filter(function (expense) {
+                            return ($scope.filtersInfo.filters.indexOf(expense.description) === -1);
+                        });
+                        $scope.totalExpenses.transactions = $scope.totalExpenses.transactions.concat(filteredResults);
+                        $scope.totalExpenses.totalAmount = monthWiseResult.totalExpenses + $scope.totalExpenses.totalAmount;
+                    })
+                });
+            };
+            monthTransaction.oncomplete = function () {
+                monthDb.close();
+            };
+        };
+
+        connection.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    }
+
 });

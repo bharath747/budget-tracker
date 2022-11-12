@@ -6,8 +6,8 @@ http.createServer(function (req, res) {
   var extension = fileNames.length > 0 ? fileNames[fileNames.length-1] : 'text/html';
   var mimeType = getMIMEType(extension);
 
-  file = (file === "" || !["tracker", "admin", "tracker.js", "manifest.json", "images/logo.png", "serviceworker.js"].includes(file)) ? "tracker" : file;
-  file = (file === "tracker" || file === "admin") ? file + ".html" : file;
+  file = (file === "" || !["tracker", "admin", "tracker.js", "manifest.json", "images/logo.png", "serviceworker.js", "analytics"].includes(file)) ? "tracker" : file;
+  file = (file === "tracker" || file === "admin" || file === "analytics") ? file + ".html" : file;
 
   fs.readFile(file, function(err, data) {
     res.writeHead(200, {'Content-Type': mimeType});
