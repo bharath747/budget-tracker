@@ -84,6 +84,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             transaction.oncomplete = function () {
                 db.close();
                 $scope.fetchTransactions();
+                $scope.fetchAnalytics();
             };
         };
         request.onerror = function (event) {
@@ -235,6 +236,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     $scope.credit = {};
     $scope.monthBudget = getDefaultObject($scope.DEFAULT_OBJECTS.MONTH_KEY);
     $scope.totalExpenses = {transactions : [], totalAmount : 0};
+    $scope.analyticsFilterKeyWords = [];
 
     $scope.filter = { "selectedYear": new Date().getFullYear(), "selectedMonth": new Date().getMonth() };
 
@@ -922,13 +924,21 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             monthQuery.onsuccess = function () {
                 $scope.$apply(function () {
                     console.log(monthQuery.result);
+                    $scope.totalExpenses = {transactions : [], totalAmount : 0};
                     var monthQueryResult = monthQuery.result ? monthQuery.result : [];
                     angular.forEach(monthQueryResult, function(monthWiseResult) {
-                        var filteredResults = monthWiseResult.expenses.filter(function (expense) {
-                            return ($scope.filtersInfo.filters.indexOf(expense.description) === -1 && !hasText($scope.filtersInfo.filters, expense.description));
-                        });
-                        $scope.totalExpenses.transactions = $scope.totalExpenses.transactions.concat(filteredResults);
-                        $scope.totalExpenses.totalAmount = monthWiseResult.totalExpenses + $scope.totalExpenses.totalAmount;
+                        if (monthWiseResult.id.indexOf($scope.sourceInfo.selectedSource) > -1) {
+                            var filteredResults = monthWiseResult.expenses.filter(function (expense) {
+                                return (($scope.filtersInfo.filters.length == 0 && $scope.analyticsFilterKeyWords.length == 0) 
+                                || ($scope.filtersInfo.filters.length > 0 && ($scope.filtersInfo.filters.indexOf(expense.description) === -1 
+                                           && !hasText($scope.filtersInfo.filters, expense.description)))
+                                           || $scope.analyticsFilterKeyWords.length > 0 && !hasText($scope.analyticsFilterKeyWords, expense.description));
+                            });
+                            $scope.totalExpenses.transactions = $scope.totalExpenses.transactions.concat(filteredResults);
+                            angular.forEach(filteredResults, function(transaction) {
+                                $scope.totalExpenses.totalAmount = parseInt(transaction.amount) + $scope.totalExpenses.totalAmount;
+                            })
+                        }
                     })
                 });
             };
@@ -951,6 +961,29 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             })
         }
         return hasTextValue;
+    }
+
+    $scope.redirectToPage = function (page) {
+        var baseUrl = window.location.origin;
+        return baseUrl+"/"+page;
+    }
+
+    $scope.addAnalyticsFilterKeyWords = function (keyWord) {
+        if (keyWord) {
+            $scope.analyticsFilterKeyWords.push(keyWord);
+            $scope.filterKeyWord = null;
+            $scope.fetchAnalytics();
+        }
+    }
+
+    $scope.deleteAnalyticsFilterKeyWords = function (keyWord) {
+        if (keyWord) {
+            var updatedList = $scope.analyticsFilterKeyWords.filter(function (obj) {
+                return (obj != keyWord);
+            });
+            $scope.analyticsFilterKeyWords = updatedList;
+            $scope.fetchAnalytics();
+        }
     }
 
 });
