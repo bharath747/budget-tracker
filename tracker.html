@@ -251,7 +251,7 @@
         <div class="row" style="margin: 1%; margin-top: 4%">
             <span class="col-12" style="text-align: center; font-weight: 600;">Expenses</span>
             <span class="col-12" style="font-weight: 600;">Total : {{monthBudget.totalExpenses}}</span>
-            <table class="table table-fixed col-12" style="height: 400px">
+            <table class="table table-fixed col-12">
                 <thead>
                 <tr>
                     <th class="col-3">Date</th>
@@ -260,7 +260,7 @@
                     <th class="col-2">Actn</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody style="height: 400px">
                 <tr class="col-12" ng-repeat="expense in monthBudget.expenses | orderBy: 'date':true">
                     <td class="col-3">{{formatDate(expense.date)}}</td>
                     <td class="col-4">{{expense.description}}</td>

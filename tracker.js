@@ -929,10 +929,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     angular.forEach(monthQueryResult, function (monthWiseResult) {
                         if (monthWiseResult.id.indexOf($scope.sourceInfo.selectedSource) > -1) {
                             var filteredResults = monthWiseResult.expenses.filter(function (expense) {
-                                return (($scope.filtersInfo.filters.length == 0 && $scope.analyticsFilterKeyWords.length == 0)
-                                    || ($scope.filtersInfo.filters.length > 0 && ($scope.filtersInfo.filters.indexOf(expense.description) === -1
-                                        && !hasText($scope.filtersInfo.filters, expense.description)))
-                                    || $scope.analyticsFilterKeyWords.length > 0 && hasText($scope.analyticsFilterKeyWords, expense.description));
+                                return isEligibleCandidate($scope.filtersInfo.filters, $scope.analyticsFilterKeyWords, expense.description);
                             });
                             $scope.totalExpenses.transactions = $scope.totalExpenses.transactions.concat(filteredResults);
                             angular.forEach(filteredResults, function (transaction) {
@@ -953,8 +950,22 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         };
     }
 
+    function isEligibleCandidate(mainFilter, subFilter, text) {
+        var isEligible = false;
+        if (mainFilter.length == 0 && subFilter.length == 0) {
+            isEligible = true;
+        } else if(mainFilter.length > 0 && subFilter.length == 0) {
+            isEligible = mainFilter.indexOf(text) === -1 && !hasText(mainFilter, text);
+        } else if(subFilter.length > 0 && mainFilter.length == 0) {
+            isEligible = hasText(subFilter, text);
+        } else {
+            isEligible = mainFilter.indexOf(text) === -1 && !hasText(mainFilter, text) && hasText(subFilter, text);
+        }
+        return isEligible;
+    }
+
     function hasText(list, text) {
-        hastextValue = false;
+        var hastextValue = false;
         if (text != null && list != null && list.length > 0) {
             for (let i = 0; i < list.length; i++) {
                 let value = list[i];

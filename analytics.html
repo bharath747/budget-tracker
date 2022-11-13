@@ -67,7 +67,7 @@
                     <a ng-href="{{redirectToPage('')}}" style="color:white;">Budget Tracker</a>
                 </span>
                 <span class="col-2" style="font-weight: 600;margin-bottom: 1px;"
-                    ng-click="printTransactions()"><button>Print</button></span>
+                    ng-click="printTransactions()"><button style="border-radius: 6px">Print</button></span>
             </nav>
 
             <div class="accordion" id="inputForms">
@@ -132,14 +132,14 @@
                 <table style="float: left; width : 100%">
                     <thead>
                         <tr>
-                            <th style="float: left; width : 4%">Date</th>
-                            <th style="float: left; width : 61%">Description</th>
-                            <th style="float: left; width : 21%">Amount</th>
+                            <th style="float: left; width : 9%">Date</th>
+                            <th style="float: left; width : 45%">Description</th>
+                            <th style="float: left; width : 38%">Amount</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr ng-repeat="expense in totalExpenses.transactions | orderBy: 'date':true">
-                            <td style="float: left; width : 30%">{{formatDate(expense.date)}}</td>
+                            <td style="float: left; width : 20%">{{formatDate(expense.date)}}</td>
                             <td style="float: left; width : 40%">{{expense.description}}</td>
                             <td style="float: left; width : 20%">{{expense.amount}}</td>
                         </tr>
