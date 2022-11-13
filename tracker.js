@@ -218,7 +218,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
 
     $scope.fileName = "backup" + "-" + getFormattedDateTime(new Date());
 
-    $scope.DEFAULT_OBJECTS = {"SUMMARY_KEY" : "summary-key", "MONTH_KEY" : "month-key", "SOURCE_INFO_KEY" : "source-info-key", "FILTERS_INFO_KEY" : "filters-info-key", "MAIN_KEY" : "main-key"};
+    $scope.DEFAULT_OBJECTS = { "SUMMARY_KEY": "summary-key", "MONTH_KEY": "month-key", "SOURCE_INFO_KEY": "source-info-key", "FILTERS_INFO_KEY": "filters-info-key", "MAIN_KEY": "main-key" };
 
     $scope.sourceInfo = getDefaultObject($scope.DEFAULT_OBJECTS.SOURCE_INFO_KEY);
     $scope.initialAmount = 0;
@@ -226,23 +226,23 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     $scope.summary = getDefaultObject($scope.DEFAULT_OBJECTS.SUMMARY_KEY);
 
     $scope.monthNames = [{ "full": "January", "short": "Jan", "index": 0 }, { "full": "February", "short": "Feb", "index": 1 },
-        { "full": "March", "short": "Mar", "index": 2 }, { "full": "April", "short": "Apr", "index": 3 }, { "full": "May", "short": "May", "index": 4 },
-        { "full": "June", "short": "Jun", "index": 5 }, { "full": "July", "short": "Jul", "index": 6 }, { "full": "August", "short": "Aug", "index": 7 },
-        { "full": "September", "short": "Sep", "index": 8 }, { "full": "October", "short": "Oct", "index": 9 }, { "full": "November", "short": "Nov", "index": 10 },
-        { "full": "December", "short": "Dec", "index": 11 }];
+    { "full": "March", "short": "Mar", "index": 2 }, { "full": "April", "short": "Apr", "index": 3 }, { "full": "May", "short": "May", "index": 4 },
+    { "full": "June", "short": "Jun", "index": 5 }, { "full": "July", "short": "Jul", "index": 6 }, { "full": "August", "short": "Aug", "index": 7 },
+    { "full": "September", "short": "Sep", "index": 8 }, { "full": "October", "short": "Oct", "index": 9 }, { "full": "November", "short": "Nov", "index": 10 },
+    { "full": "December", "short": "Dec", "index": 11 }];
     $scope.years = [2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030];
 
     $scope.expense = {};
     $scope.credit = {};
     $scope.monthBudget = getDefaultObject($scope.DEFAULT_OBJECTS.MONTH_KEY);
-    $scope.totalExpenses = {transactions : [], totalAmount : 0};
+    $scope.totalExpenses = { transactions: [], totalAmount: 0 };
     $scope.analyticsFilterKeyWords = [];
 
     $scope.filter = { "selectedYear": new Date().getFullYear(), "selectedMonth": new Date().getMonth() };
 
 
     $scope.DATABASE = "budget-tracker";
-    $scope.STORES = {SOURCE_SUMMARY : "source-summary", MONTH_SUMMARY : "month-summary", SOURCE_INFO : "source-info", FILTERS_INFO : "filters-info"};
+    $scope.STORES = { SOURCE_SUMMARY: "source-summary", MONTH_SUMMARY: "month-summary", SOURCE_INFO: "source-info", FILTERS_INFO: "filters-info" };
 
 
     //Backup and Restore related
@@ -254,7 +254,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
 
     function setupDataBaseIfDoesNotExist() {
 
-        return new Promise (function(resolve) {
+        return new Promise(function (resolve) {
             const indexedDB =
                 window.indexedDB ||
                 window.mozIndexedDB ||
@@ -601,7 +601,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     }
 
     function exportStoreDataToJson(storeName) {
-        return new Promise (function(resolve) {
+        return new Promise(function (resolve) {
             var connection = initializeDBConnection();
             connection.onsuccess = function () {
                 const db = connection.result;
@@ -626,7 +626,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     }
 
     function exportDBDataToJson() {
-        return new Promise (function(resolve) {
+        return new Promise(function (resolve) {
             var syncLoop = getSyncLoop();
             var exportObj = {};
             var storeKeys = Object.keys($scope.STORES);
@@ -659,9 +659,9 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     $scope.localStorageBackupToDrive = function () {
         exportDBDataToJson().then(function (exportObj) {
             $http.post("/backup", exportObj)
-                .then(function(response) {
+                .then(function (response) {
                     console.log(response);
-                }, function(error) {
+                }, function (error) {
                     console.log(error);
                 });
         });
@@ -721,14 +721,14 @@ app.controller("appCtrl", function ($scope, $http, $q) {
 
     $scope.driveRestore = function () {
         $http.get("/restore")
-                .then(function(response) {
-                    if (response.data != null && response.data != "") {
-                        restoreDataFromJson(response.data);
-                    }
-                    console.log(response);
-                }, function(error) {
-                    console.log(error);
-                });
+            .then(function (response) {
+                if (response.data != null && response.data != "") {
+                    restoreDataFromJson(response.data);
+                }
+                console.log(response);
+            }, function (error) {
+                console.log(error);
+            });
     }
 
     function restoreDataFromJson(backup) {
@@ -755,7 +755,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             };
         }
     }
-    
+
     $scope.deleteDataBase = function () {
         window.indexedDB.deleteDatabase($scope.DATABASE);
         window.location.reload();
@@ -820,7 +820,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         };
     }
 
-    function getFormattedDateAndTime (date) {
+    function getFormattedDateAndTime(date) {
         if (date) {
             var date = new Date(date);
             var day = date.getDate();
@@ -835,11 +835,11 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         return null;
     };
 
-    $scope.getDisplayDate = function(date) {
+    $scope.getDisplayDate = function (date) {
         return getFormattedDateAndTime(date);
     }
 
-    function getFormattedDateTime (date) {
+    function getFormattedDateTime(date) {
         if (date) {
             var date = new Date(date);
             var day = date.getDate();
@@ -862,29 +862,29 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                 "initialAmountDate": date,
                 "finalAmount": 0,
                 "finalAmountDate": date,
-                "id" : getSummaryKey()
+                "id": getSummaryKey()
             }
         } else if (type === $scope.DEFAULT_OBJECTS.MONTH_KEY) {
             return {
-                initialAmount : 0,
-                initialAmountDate : null,
-                totalExpenses : 0,
-                expenses : [],
-                totalCredits : 0,
-                credits : [],
-                maxId : 0,
-                id : getMonthKey(date)
+                initialAmount: 0,
+                initialAmountDate: null,
+                totalExpenses: 0,
+                expenses: [],
+                totalCredits: 0,
+                credits: [],
+                maxId: 0,
+                id: getMonthKey(date)
             }
         } else if (type === $scope.DEFAULT_OBJECTS.SOURCE_INFO_KEY) {
             return {
-                id : getSourceInfoKey(),
-                sources : ["default"],
-                selectedSource : "default"
+                id: getSourceInfoKey(),
+                sources: ["default"],
+                selectedSource: "default"
             };
         } else if (type === $scope.DEFAULT_OBJECTS.FILTERS_INFO_KEY) {
             return {
-                id : getFiltersInfoKey(),
-                filters : []
+                id: getFiltersInfoKey(),
+                filters: []
             };
         } else if (type === $scope.DEFAULT_OBJECTS.MAIN_KEY) {
             var obj = {};
@@ -924,18 +924,18 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             monthQuery.onsuccess = function () {
                 $scope.$apply(function () {
                     console.log(monthQuery.result);
-                    $scope.totalExpenses = {transactions : [], totalAmount : 0};
+                    $scope.totalExpenses = { transactions: [], totalAmount: 0 };
                     var monthQueryResult = monthQuery.result ? monthQuery.result : [];
-                    angular.forEach(monthQueryResult, function(monthWiseResult) {
+                    angular.forEach(monthQueryResult, function (monthWiseResult) {
                         if (monthWiseResult.id.indexOf($scope.sourceInfo.selectedSource) > -1) {
                             var filteredResults = monthWiseResult.expenses.filter(function (expense) {
-                                return (($scope.filtersInfo.filters.length == 0 && $scope.analyticsFilterKeyWords.length == 0) 
-                                || ($scope.filtersInfo.filters.length > 0 && ($scope.filtersInfo.filters.indexOf(expense.description) === -1 
-                                           && !hasText($scope.filtersInfo.filters, expense.description)))
-                                           || $scope.analyticsFilterKeyWords.length > 0 && !hasText($scope.analyticsFilterKeyWords, expense.description));
+                                return (($scope.filtersInfo.filters.length == 0 && $scope.analyticsFilterKeyWords.length == 0)
+                                    || ($scope.filtersInfo.filters.length > 0 && ($scope.filtersInfo.filters.indexOf(expense.description) === -1
+                                        && !hasText($scope.filtersInfo.filters, expense.description)))
+                                    || $scope.analyticsFilterKeyWords.length > 0 && hasText($scope.analyticsFilterKeyWords, expense.description));
                             });
                             $scope.totalExpenses.transactions = $scope.totalExpenses.transactions.concat(filteredResults);
-                            angular.forEach(filteredResults, function(transaction) {
+                            angular.forEach(filteredResults, function (transaction) {
                                 $scope.totalExpenses.totalAmount = parseInt(transaction.amount) + $scope.totalExpenses.totalAmount;
                             })
                         }
@@ -956,16 +956,20 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     function hasText(list, text) {
         hastextValue = false;
         if (text != null && list != null && list.length > 0) {
-            angular.forEach(list, function(value) {
+            for (let i = 0; i < list.length; i++) {
+                let value = list[i];
                 hasTextValue = text.toLowerCase().indexOf(value.toLowerCase()) > -1;
-            })
+                if (hasTextValue) {
+                    break;
+                }
+            }
         }
         return hasTextValue;
     }
 
     $scope.redirectToPage = function (page) {
         var baseUrl = window.location.origin;
-        return baseUrl+"/"+page;
+        return baseUrl + "/" + page;
     }
 
     $scope.addAnalyticsFilterKeyWords = function (keyWord) {
@@ -984,6 +988,37 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             $scope.analyticsFilterKeyWords = updatedList;
             $scope.fetchAnalytics();
         }
+    }
+
+    $scope.printTransactions = function () {
+        var divContents = $("#expenseTransactions").html();
+        var printWindow = window.open('', '', 'height=400,width=800');
+        printWindow.document.write('<html><head><title></title>');
+        printWindow.document.write(
+            '<style>' +
+            'table {' +
+            'border-collapse: collapse;' +
+            'border-spacing: 0;' +
+            'width: 100%;' +
+            'border: 1px solid #ddd;' +
+            '}' +
+
+            'td {' +
+            'text-align: left;' +
+            'padding: 16px;' +
+            '}' +
+
+            'tr:nth-child(even) {' +
+            'background-color: #f2f2f2;' +
+            '}' +
+            '</style>'
+
+        );
+        printWindow.document.write('</head><body >');
+        printWindow.document.write(divContents);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
     }
 
 });

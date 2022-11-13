@@ -63,16 +63,19 @@
         <div class="container-fluid" style="margin-top: 1%;">
 
             <nav class="navbar navbar-dark bg-dark" style="margin-bottom: 2%">
-                <span class="col-12" style="text-align: center;font-weight: 600; color: white">
+                <span class="col-10" style="text-align: center;font-weight: 600; color: white">
                     <a ng-href="{{redirectToPage('')}}" style="color:white;">Budget Tracker</a>
                 </span>
+                <span class="col-2" style="font-weight: 600;margin-bottom: 1px;"
+                    ng-click="printTransactions()"><button>Print</button></span>
             </nav>
 
             <div class="accordion" id="inputForms">
                 <div class="card">
                     <div class="card-header" id="addSourceForm">
                         <h2 class="mb-0">
-                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                            <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
+                                data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
                                 Add KeyWord Filters
                             </button>
                         </h2>
@@ -82,16 +85,18 @@
                             <form class="form-inline col-12" autocomplete="on">
                                 <div class="form-group col-8">
                                     <input type="text" class="form-control" ng-model="filterKeyWord"
-                                           placeholder="Enter Key Word">
+                                        placeholder="Enter Key Word">
                                 </div>
                                 <div class="form-group col-4">
-                                    <button type="submit" class="btn btn-primary col-12" style="padding: 4px 1px 4px 1px;"
-                                            ng-click="addAnalyticsFilterKeyWords(filterKeyWord)">Add</button>
+                                    <button type="submit" class="btn btn-primary col-12"
+                                        style="padding: 4px 1px 4px 1px;"
+                                        ng-click="addAnalyticsFilterKeyWords(filterKeyWord)">Add</button>
                                 </div>
                             </form>
                             <ul>
                                 <li ng-repeat="keyWord in analyticsFilterKeyWords">
-                                    {{keyWord}} <span style="padding-left: 5%" ng-click="deleteAnalyticsFilterKeyWords(keyWord)">x</span>
+                                    {{keyWord}} <span style="padding-left: 5%"
+                                        ng-click="deleteAnalyticsFilterKeyWords(keyWord)">x</span>
                                 </li>
                             </ul>
                         </div>
@@ -101,24 +106,47 @@
 
             <div class="row" style="margin: 1%; margin-top: 4%">
                 <span class="col-12" style="text-align: center; font-weight: 600;">Transactions</span>
-                <span class="col-12" style="font-weight: 600;">Total : {{totalExpenses.totalAmount}}</span>
+                <span class="col-10" style="font-weight: 600;">Total : {{totalExpenses.totalAmount}}</span>
                 <table class="table table-fixed col-12">
                     <thead>
-                    <tr>
-                        <th class="col-4">Date</th>
-                        <th class="col-5">Description</th>
-                        <th class="col-3">Amount</th>
-                    </tr>
+                        <tr>
+                            <th class="col-4">Date</th>
+                            <th class="col-5">Description</th>
+                            <th class="col-3">Amount</th>
+                        </tr>
                     </thead>
                     <tbody>
-                    <tr class="col-12" ng-repeat="expense in totalExpenses.transactions | orderBy: 'date':true">
-                        <td class="col-4" style="padding-left: 0">{{formatDate(expense.date)}}</td>
-                        <td class="col-5">{{expense.description}}</td>
-                        <td class="col-3">{{expense.amount}}</td>
-                    </tr>
+                        <tr ng-repeat="expense in totalExpenses.transactions | orderBy: 'date':true">
+                            <td class="col-4" style="padding-left: 0">{{formatDate(expense.date)}}</td>
+                            <td class="col-5">{{expense.description}}</td>
+                            <td class="col-3">{{expense.amount}}</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
+
+
+            <div class="row" style="margin: 1%; margin-top: 4%" id="expenseTransactions" ng-show="false">
+                <span style="text-align: center; font-weight: 600;float: left; width : 100%;padding-bottom: 2%;">Transactions</span>
+                <span style="font-weight: 600;float: left; width : 100%;padding-bottom: 2%;">Total : {{totalExpenses.totalAmount}}</span>
+                <table style="float: left; width : 100%">
+                    <thead>
+                        <tr>
+                            <th style="float: left; width : 4%">Date</th>
+                            <th style="float: left; width : 61%">Description</th>
+                            <th style="float: left; width : 21%">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="expense in totalExpenses.transactions | orderBy: 'date':true">
+                            <td style="float: left; width : 30%">{{formatDate(expense.date)}}</td>
+                            <td style="float: left; width : 40%">{{expense.description}}</td>
+                            <td style="float: left; width : 20%">{{expense.amount}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
 
 
         </div>
