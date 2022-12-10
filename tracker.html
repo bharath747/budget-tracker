@@ -68,7 +68,9 @@
     <div class="container-fluid" style="margin-top: 1%;">
 
         <nav class="navbar navbar-dark bg-dark" style="margin-bottom: 2%">
-            <span class="col-8" style="text-align: right;font-weight: 600; color: white">Budget Tracker</span>
+            <span class="col-8" style="text-align: right;font-weight: 600; color: white">
+                <a ng-href="{{redirectToPage('')}}" style="color:white;">Budget Tracker</a>
+            </span>
             <div class="dropdown" ng-show="sourceInfo.sources.length > 1">
                 <button class="btn btn-secondary dropdown-toggle" type="button"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -210,6 +212,10 @@
                     <td>Current Balance</td>
                     <td>{{summary.finalAmount}}</td>
                 </tr>
+                <tr>
+                    <td>Total Expenses</td>
+                    <td><a ng-href="{{redirectToPage('analytics')}}">{{totalExpenses.totalAmount}}</a></td>
+                </tr>
                 </tbody>
             </table>
         </div>
@@ -254,8 +260,8 @@
                     <th class="col-2">Actn</th>
                 </tr>
                 </thead>
-                <tbody>
-                <tr class="col-12" ng-repeat="expense in monthBudget.expenses">
+                <tbody style="height: 400px">
+                <tr class="col-12" ng-repeat="expense in monthBudget.expenses | orderBy: 'date':true">
                     <td class="col-3">{{formatDate(expense.date)}}</td>
                     <td class="col-4">{{expense.description}}</td>
                     <td class="col-3">{{expense.amount}}</td>
@@ -281,7 +287,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="credit in monthBudget.credits">
+                <tr ng-repeat="credit in monthBudget.credits | orderBy: 'date':true">
                     <td class="col-3">{{formatDate(credit.date)}}</td>
                     <td class="col-4">{{credit.source}}</td>
                     <td class="col-3">{{credit.amount}}</td>

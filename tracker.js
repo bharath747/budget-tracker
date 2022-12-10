@@ -84,6 +84,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             transaction.oncomplete = function () {
                 db.close();
                 $scope.fetchTransactions();
+                $scope.fetchAnalytics();
             };
         };
         request.onerror = function (event) {
@@ -120,12 +121,104 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             console.error(event);
         };
     }
+
+
+    $scope.filterName = null;
+
+    $scope.addFilter = function () {
+        const request = initializeDBConnection();
+
+        request.onsuccess = function () {
+            const db = request.result;
+            const transaction = db.transaction($scope.STORES.FILTERS_INFO, "readwrite");
+
+            const store = transaction.objectStore($scope.STORES.FILTERS_INFO);
+
+            var query = store.get(1);
+            query.onsuccess = function () {
+                var filtersInfoObj = query.result ? query.result : getDefaultObject($scope.DEFAULT_OBJECTS.FILTERS_INFO_KEY);
+                filtersInfoObj.filters.push($scope.filterName);
+                store.put(filtersInfoObj);
+            };
+
+            transaction.oncomplete = function () {
+                db.close();
+            };
+
+            $scope.refreshFiltersInfo();
+        };
+
+        request.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    };
+
+    $scope.deleteFilter = function (filterName) {
+        const request = initializeDBConnection();
+
+        request.onsuccess = function () {
+            const db = request.result;
+            const transaction = db.transaction($scope.STORES.FILTERS_INFO, "readwrite");
+
+            const store = transaction.objectStore($scope.STORES.FILTERS_INFO);
+
+            var query = store.get(1);
+            query.onsuccess = function () {
+                if (query.result) {
+                    var filtersInfoObj = query.result;
+                    var updatedList = filtersInfoObj.filters.filter(function (obj) {
+                        return (obj !== filterName);
+                    });
+                    filtersInfoObj.filters = updatedList;
+                    store.put(filtersInfoObj);
+                }
+            };
+
+            transaction.oncomplete = function () {
+                db.close();
+            };
+
+            $scope.refreshFiltersInfo();
+        };
+
+        request.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    };
+
+    $scope.refreshFiltersInfo = function () {
+        const request = initializeDBConnection();
+        request.onsuccess = function () {
+            const db = request.result;
+            const transaction = db.transaction($scope.STORES.FILTERS_INFO, "readwrite");
+
+            const store = transaction.objectStore($scope.STORES.FILTERS_INFO);
+
+            var query = store.get(1);
+            query.onsuccess = function () {
+                $scope.$apply(function () {
+                    $scope.filtersInfo = query.result ? query.result : getDefaultObject($scope.DEFAULT_OBJECTS.FILTERS_INFO_KEY);
+                });
+            };
+            transaction.oncomplete = function () {
+                db.close();
+            };
+        };
+        request.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    }
+
+
     //End of Admin Related
 
 
     $scope.fileName = "backup" + "-" + getFormattedDateTime(new Date());
 
-    $scope.DEFAULT_OBJECTS = {"SUMMARY_KEY" : "summary-key", "MONTH_KEY" : "month-key", "SOURCE_INFO_KEY" : "source-info-key", "MAIN_KEY" : "main-key"};
+    $scope.DEFAULT_OBJECTS = { "SUMMARY_KEY": "summary-key", "MONTH_KEY": "month-key", "SOURCE_INFO_KEY": "source-info-key", "FILTERS_INFO_KEY": "filters-info-key", "MAIN_KEY": "main-key" };
 
     $scope.sourceInfo = getDefaultObject($scope.DEFAULT_OBJECTS.SOURCE_INFO_KEY);
     $scope.initialAmount = 0;
@@ -133,21 +226,23 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     $scope.summary = getDefaultObject($scope.DEFAULT_OBJECTS.SUMMARY_KEY);
 
     $scope.monthNames = [{ "full": "January", "short": "Jan", "index": 0 }, { "full": "February", "short": "Feb", "index": 1 },
-        { "full": "March", "short": "Mar", "index": 2 }, { "full": "April", "short": "Apr", "index": 3 }, { "full": "May", "short": "May", "index": 4 },
-        { "full": "June", "short": "Jun", "index": 5 }, { "full": "July", "short": "Jul", "index": 6 }, { "full": "August", "short": "Aug", "index": 7 },
-        { "full": "September", "short": "Sep", "index": 8 }, { "full": "October", "short": "Oct", "index": 9 }, { "full": "November", "short": "Nov", "index": 10 },
-        { "full": "December", "short": "Dec", "index": 11 }];
+    { "full": "March", "short": "Mar", "index": 2 }, { "full": "April", "short": "Apr", "index": 3 }, { "full": "May", "short": "May", "index": 4 },
+    { "full": "June", "short": "Jun", "index": 5 }, { "full": "July", "short": "Jul", "index": 6 }, { "full": "August", "short": "Aug", "index": 7 },
+    { "full": "September", "short": "Sep", "index": 8 }, { "full": "October", "short": "Oct", "index": 9 }, { "full": "November", "short": "Nov", "index": 10 },
+    { "full": "December", "short": "Dec", "index": 11 }];
     $scope.years = [2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030];
 
     $scope.expense = {};
     $scope.credit = {};
     $scope.monthBudget = getDefaultObject($scope.DEFAULT_OBJECTS.MONTH_KEY);
+    $scope.totalExpenses = { transactions: [], totalAmount: 0 };
+    $scope.analyticsFilterKeyWords = [];
 
     $scope.filter = { "selectedYear": new Date().getFullYear(), "selectedMonth": new Date().getMonth() };
 
 
     $scope.DATABASE = "budget-tracker";
-    $scope.STORES = {SOURCE_SUMMARY : "source-summary", MONTH_SUMMARY : "month-summary", SOURCE_INFO : "source-info"};
+    $scope.STORES = { SOURCE_SUMMARY: "source-summary", MONTH_SUMMARY: "month-summary", SOURCE_INFO: "source-info", FILTERS_INFO: "filters-info" };
 
 
     //Backup and Restore related
@@ -159,7 +254,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
 
     function setupDataBaseIfDoesNotExist() {
 
-        return new Promise (function(resolve) {
+        return new Promise(function (resolve) {
             const indexedDB =
                 window.indexedDB ||
                 window.mozIndexedDB ||
@@ -180,6 +275,11 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                 var sourceInfoValue = getDefaultObject($scope.DEFAULT_OBJECTS.SOURCE_INFO_KEY);
                 sourceInfoValue.id = getSourceInfoKey();
                 sourceInfoStore.put(sourceInfoValue);
+
+                const filtersInfoStore = db.createObjectStore($scope.STORES.FILTERS_INFO, { keyPath: "id" });
+                var filtersInfoValue = getDefaultObject($scope.DEFAULT_OBJECTS.FILTERS_INFO_KEY);
+                filtersInfoValue.id = getFiltersInfoKey();
+                filtersInfoStore.put(filtersInfoValue);
 
                 const budgetStore = db.createObjectStore($scope.STORES.SOURCE_SUMMARY, { keyPath: "id" });
                 var summaryValue = getDefaultObject($scope.DEFAULT_OBJECTS.SUMMARY_KEY);
@@ -207,6 +307,18 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     });
                 };
 
+
+                const filterInfoTransaction = db.transaction($scope.STORES.FILTERS_INFO, "readwrite");
+
+                const filtersInfoStore = filterInfoTransaction.objectStore($scope.STORES.FILTERS_INFO);
+
+                var filtersInfoQuery = filtersInfoStore.get(1);
+                filtersInfoQuery.onsuccess = function () {
+                    $scope.$apply(function () {
+                        $scope.filtersInfo = filtersInfoQuery.result ? filtersInfoQuery.result : getDefaultObject($scope.DEFAULT_OBJECTS.FILTERS_INFO_KEY);
+                    });
+                };
+
                 transaction.oncomplete = function () {
                     db.close();
                     return resolve("success");
@@ -226,6 +338,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         setupDataBaseIfDoesNotExist().then(function (result) {
             if (result == "success") {
                 $scope.fetchTransactions();
+                $scope.fetchAnalytics();
             }
         });
     };
@@ -488,7 +601,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     }
 
     function exportStoreDataToJson(storeName) {
-        return new Promise (function(resolve) {
+        return new Promise(function (resolve) {
             var connection = initializeDBConnection();
             connection.onsuccess = function () {
                 const db = connection.result;
@@ -513,7 +626,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     }
 
     function exportDBDataToJson() {
-        return new Promise (function(resolve) {
+        return new Promise(function (resolve) {
             var syncLoop = getSyncLoop();
             var exportObj = {};
             var storeKeys = Object.keys($scope.STORES);
@@ -546,9 +659,9 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     $scope.localStorageBackupToDrive = function () {
         exportDBDataToJson().then(function (exportObj) {
             $http.post("/backup", exportObj)
-                .then(function(response) {
+                .then(function (response) {
                     console.log(response);
-                }, function(error) {
+                }, function (error) {
                     console.log(error);
                 });
         });
@@ -608,14 +721,14 @@ app.controller("appCtrl", function ($scope, $http, $q) {
 
     $scope.driveRestore = function () {
         $http.get("/restore")
-                .then(function(response) {
-                    if (response.data != null && response.data != "") {
-                        restoreDataFromJson(response.data);
-                    }
-                    console.log(response);
-                }, function(error) {
-                    console.log(error);
-                });
+            .then(function (response) {
+                if (response.data != null && response.data != "") {
+                    restoreDataFromJson(response.data);
+                }
+                console.log(response);
+            }, function (error) {
+                console.log(error);
+            });
     }
 
     function restoreDataFromJson(backup) {
@@ -642,7 +755,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             };
         }
     }
-    
+
     $scope.deleteDataBase = function () {
         window.indexedDB.deleteDatabase($scope.DATABASE);
         window.location.reload();
@@ -707,7 +820,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         };
     }
 
-    function getFormattedDateAndTime (date) {
+    function getFormattedDateAndTime(date) {
         if (date) {
             var date = new Date(date);
             var day = date.getDate();
@@ -722,11 +835,11 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         return null;
     };
 
-    $scope.getDisplayDate = function(date) {
+    $scope.getDisplayDate = function (date) {
         return getFormattedDateAndTime(date);
     }
 
-    function getFormattedDateTime (date) {
+    function getFormattedDateTime(date) {
         if (date) {
             var date = new Date(date);
             var day = date.getDate();
@@ -749,24 +862,29 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                 "initialAmountDate": date,
                 "finalAmount": 0,
                 "finalAmountDate": date,
-                "id" : getSummaryKey()
+                "id": getSummaryKey()
             }
         } else if (type === $scope.DEFAULT_OBJECTS.MONTH_KEY) {
             return {
-                initialAmount : 0,
-                initialAmountDate : null,
-                totalExpenses : 0,
-                expenses : [],
-                totalCredits : 0,
-                credits : [],
-                maxId : 0,
-                id : getMonthKey(date)
+                initialAmount: 0,
+                initialAmountDate: null,
+                totalExpenses: 0,
+                expenses: [],
+                totalCredits: 0,
+                credits: [],
+                maxId: 0,
+                id: getMonthKey(date)
             }
         } else if (type === $scope.DEFAULT_OBJECTS.SOURCE_INFO_KEY) {
             return {
-                id : getSourceInfoKey(),
-                sources : ["default"],
-                selectedSource : "default"
+                id: getSourceInfoKey(),
+                sources: ["default"],
+                selectedSource: "default"
+            };
+        } else if (type === $scope.DEFAULT_OBJECTS.FILTERS_INFO_KEY) {
+            return {
+                id: getFiltersInfoKey(),
+                filters: []
             };
         } else if (type === $scope.DEFAULT_OBJECTS.MAIN_KEY) {
             var obj = {};
@@ -789,4 +907,129 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     function getSourceInfoKey() {
         return 1;
     }
+
+    function getFiltersInfoKey() {
+        return 1;
+    }
+
+    $scope.fetchAnalytics = function () {
+        var monthStore = $scope.STORES.MONTH_SUMMARY;
+
+        var connection = initializeDBConnection();
+        connection.onsuccess = function () {
+            const monthDb = connection.result;
+            const monthTransaction = monthDb.transaction(monthStore, "readwrite");
+            const monthSummaryStore = monthTransaction.objectStore(monthStore);
+            var monthQuery = monthSummaryStore.getAll();
+            monthQuery.onsuccess = function () {
+                $scope.$apply(function () {
+                    console.log(monthQuery.result);
+                    $scope.totalExpenses = { transactions: [], totalAmount: 0 };
+                    var monthQueryResult = monthQuery.result ? monthQuery.result : [];
+                    angular.forEach(monthQueryResult, function (monthWiseResult) {
+                        if (monthWiseResult.id.indexOf($scope.sourceInfo.selectedSource) > -1) {
+                            var filteredResults = monthWiseResult.expenses.filter(function (expense) {
+                                return isEligibleCandidate($scope.filtersInfo.filters, $scope.analyticsFilterKeyWords, expense.description);
+                            });
+                            $scope.totalExpenses.transactions = $scope.totalExpenses.transactions.concat(filteredResults);
+                            angular.forEach(filteredResults, function (transaction) {
+                                $scope.totalExpenses.totalAmount = parseInt(transaction.amount) + $scope.totalExpenses.totalAmount;
+                            })
+                        }
+                    })
+                });
+            };
+            monthTransaction.oncomplete = function () {
+                monthDb.close();
+            };
+        };
+
+        connection.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    }
+
+    function isEligibleCandidate(mainFilter, subFilter, text) {
+        var isEligible = false;
+        if (mainFilter.length == 0 && subFilter.length == 0) {
+            isEligible = true;
+        } else if(mainFilter.length > 0 && subFilter.length == 0) {
+            isEligible = mainFilter.indexOf(text) === -1 && !hasText(mainFilter, text);
+        } else if(subFilter.length > 0 && mainFilter.length == 0) {
+            isEligible = hasText(subFilter, text);
+        } else {
+            isEligible = mainFilter.indexOf(text) === -1 && !hasText(mainFilter, text) && hasText(subFilter, text);
+        }
+        return isEligible;
+    }
+
+    function hasText(list, text) {
+        var hastextValue = false;
+        if (text != null && list != null && list.length > 0) {
+            for (let i = 0; i < list.length; i++) {
+                let value = list[i];
+                hasTextValue = text.toLowerCase().indexOf(value.toLowerCase()) > -1;
+                if (hasTextValue) {
+                    break;
+                }
+            }
+        }
+        return hasTextValue;
+    }
+
+    $scope.redirectToPage = function (page) {
+        var baseUrl = window.location.origin;
+        return baseUrl + "/" + page;
+    }
+
+    $scope.addAnalyticsFilterKeyWords = function (keyWord) {
+        if (keyWord) {
+            $scope.analyticsFilterKeyWords.push(keyWord);
+            $scope.filterKeyWord = null;
+            $scope.fetchAnalytics();
+        }
+    }
+
+    $scope.deleteAnalyticsFilterKeyWords = function (keyWord) {
+        if (keyWord) {
+            var updatedList = $scope.analyticsFilterKeyWords.filter(function (obj) {
+                return (obj != keyWord);
+            });
+            $scope.analyticsFilterKeyWords = updatedList;
+            $scope.fetchAnalytics();
+        }
+    }
+
+    $scope.printTransactions = function () {
+        var divContents = $("#expenseTransactions").html();
+        var printWindow = window.open('', '', 'height=400,width=800');
+        printWindow.document.write('<html><head><title></title>');
+        printWindow.document.write(
+            '<style>' +
+            'table {' +
+            'border-collapse: collapse;' +
+            'border-spacing: 0;' +
+            'width: 100%;' +
+            'border: 1px solid #ddd;' +
+            '}' +
+
+            'td {' +
+            'text-align: left;' +
+            'padding: 16px;' +
+            '}' +
+
+            'tr:nth-child(even) {' +
+            'background-color: #f2f2f2;' +
+            '}' +
+            '</style>'
+
+        );
+        printWindow.document.write('</head><body >');
+        printWindow.document.write(divContents);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
+    }
+
 });
