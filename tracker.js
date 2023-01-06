@@ -772,7 +772,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     }
 
     function frameMonthKey(month, year) {
-        if (month && year && $scope.sourceInfo.selectedSource) {
+        if (month != undefined && year && $scope.sourceInfo.selectedSource) {
             return (parseInt(month) + 1) + "-" + year + "-" + $scope.sourceInfo.selectedSource;
         }
     }
