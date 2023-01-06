@@ -236,7 +236,7 @@
             <div class="dropdown" style="margin-left: 1%;">
                 <button class="btn btn-secondary dropdown-toggle" type="button"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {{filter.selectedMonth ? monthNames[filter.selectedMonth].full : 'Select Month'}}
+                    {{filter.selectedMonth != undefined ? monthNames[filter.selectedMonth].full : 'Select Month'}}
                 </button>
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                     <a class="dropdown-item" style="cursor: pointer;" ng-repeat="month in monthNames"
