@@ -945,6 +945,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
 
                             var idArr = monthWiseResult.id.split("-");
                             monthSummaryObj.displayHeader = $scope.monthNames[idArr[0] - 1].short + " " + idArr[1];
+                            monthSummaryObj.sortKey = new Date("01-" + idArr[0] + "-" + idArr[1]);
 
                             $scope.totalExpenses.transactions.push(monthSummaryObj);
                         }
