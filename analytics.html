@@ -135,24 +135,31 @@
 
 
             <div class="row" style="margin: 1%; margin-top: 4%" id="expenseTransactions" ng-show="false">
-                <span style="text-align: center; font-weight: 600;float: left; width : 100%;padding-bottom: 2%;">Transactions</span>
-                <span style="font-weight: 600;float: left; width : 100%;padding-bottom: 2%;">Total : {{totalExpenses.totalAmount}}</span>
-                <table style="float: left; width : 100%">
-                    <thead>
-                        <tr>
-                            <th style="float: left; width : 9%">Date</th>
-                            <th style="float: left; width : 45%">Description</th>
-                            <th style="float: left; width : 38%">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr ng-repeat="expense in totalExpenses.transactions | orderBy: 'date':true">
-                            <td style="float: left; width : 20%">{{formatDate(expense.date)}}</td>
-                            <td style="float: left; width : 40%">{{expense.description}}</td>
-                            <td style="float: left; width : 20%">{{expense.amount}}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="col-10" style="font-weight: 600;text-align: center;">Total Expenses : {{totalExpenses.totalAmount}}</span>
+
+                <div class="row" ng-repeat="monthSummary in totalExpenses.transactions | orderBy: 'sortKey':true">
+                    <div class="col-12" style="text-align: center; font-weight: 600;margin-top: 1%;">{{monthSummary.displayHeader}}</div>
+                    <br>
+                    <span class="col-10" style="font-weight: 600;margin-bottom: 1%;"> Expense Amount : {{monthSummary.totalExpenses}}</span>
+    
+                    <table class="table table-fixed col-12" style="margin-top:1%">
+                        <thead>
+                            <tr>
+                                <th class="col-4" style="text-align: left;padding-left: 0.6%;">Date</th>
+                                <th class="col-5" style="text-align: left;padding-left: 1%;">Description</th>
+                                <th class="col-3" style="text-align: left;padding-left: 0.6%;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="expense in monthSummary.expenses | orderBy: 'date':true">
+                                <td class="col-4" style="padding-left: 00.6%">{{formatDate(expense.date)}}</td>
+                                <td class="col-5">{{expense.description}}</td>
+                                <td class="col-3">{{expense.amount}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                
+                </div>
             </div>
 
 
