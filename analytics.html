@@ -108,7 +108,7 @@
                 <span class="col-12" style="text-align: center; font-weight: 600;">Transactions</span>
                 <span class="col-10" style="font-weight: 600;margin-left: -4%;margin-bottom: 4%;">Total Expenses : {{totalExpenses.totalAmount}}</span>
 
-                <div class="row" ng-repeat="monthSummary in totalExpenses.transactions">
+                <div class="row" ng-repeat="monthSummary in totalExpenses.transactions | orderBy: 'sortKey':true">
                     <span class="col-12" style="text-align: center; font-weight: 600;">{{monthSummary.displayHeader}}</span>
                     <span class="col-10" style="font-weight: 600;">Total Expenses : {{monthSummary.totalExpenses}}</span>
     
