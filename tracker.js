@@ -1025,8 +1025,8 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             'border-spacing: 0;' +
             'width: 100%;' +
             'border: 1px solid #ddd;' +
-            'margin-left: 26%;' +
-            'width: 50% !important;' +
+            //'margin-left: 26%;' +
+            //'width: 50% !important;' +
             '}' +
 
             'td {' +
