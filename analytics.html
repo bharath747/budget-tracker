@@ -108,7 +108,7 @@
                 <span class="col-12" style="text-align: center; font-weight: 600;">Transactions</span>
                 <span class="col-10" style="font-weight: 600;margin-left: -4%;margin-bottom: 4%;">Total Expenses : {{totalExpenses.totalAmount}}</span>
 
-                <div class="row" ng-repeat="monthSummary in totalExpenses.transactions | orderBy: 'sortKey':true">
+                <div class="row" ng-repeat="monthSummary in totalExpenses.transactions | orderBy: 'sortKey':true" ng-if="monthSummary.expenses.length > 0">
                     <span class="col-12" style="text-align: center; font-weight: 600;">{{monthSummary.displayHeader}}</span>
                     <span class="col-10" style="font-weight: 600;">Total Expenses : {{monthSummary.totalExpenses}}</span>
     
@@ -137,7 +137,7 @@
             <div class="row" style="margin: 1%; margin-top: 4%" id="expenseTransactions" ng-show="false">
                 <div class="col-10" style="font-weight: 600;text-align: center;">Total Expenses : {{totalExpenses.totalAmount}}</span>
 
-                <div class="row" ng-repeat="monthSummary in totalExpenses.transactions | orderBy: 'sortKey':true">
+                <div class="row" ng-repeat="monthSummary in totalExpenses.transactions | orderBy: 'sortKey':true" ng-if="monthSummary.expenses.length > 0">
                     <div class="col-12" style="text-align: center; font-weight: 600;margin-top: 1%;">{{monthSummary.displayHeader}}</div>
                     <br>
                     <span class="col-10" style="font-weight: 600;margin-bottom: 1%;"> Expense Amount : {{monthSummary.totalExpenses}}</span>
