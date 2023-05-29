@@ -762,8 +762,8 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     }
 
     $scope.formatDate = function (date) {
-        var date = new Date(date);
         if (date) {
+            var date = new Date(date);
             var day = date.getDate();
             var month = $scope.monthNames[date.getMonth()].short;
             var year = date.getFullYear();
@@ -928,13 +928,25 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     var monthQueryResult = monthQuery.result ? monthQuery.result : [];
                     angular.forEach(monthQueryResult, function (monthWiseResult) {
                         if (monthWiseResult.id.indexOf($scope.sourceInfo.selectedSource) > -1) {
+                            var monthSummaryObj = monthWiseResult;
+
                             var filteredResults = monthWiseResult.expenses.filter(function (expense) {
                                 return isEligibleCandidate($scope.filtersInfo.filters, $scope.analyticsFilterKeyWords, expense.description);
                             });
-                            $scope.totalExpenses.transactions = $scope.totalExpenses.transactions.concat(filteredResults);
+                            //$scope.totalExpenses.transactions = $scope.totalExpenses.transactions.concat(filteredResults);
+                            monthSummaryObj.expenses = filteredResults;
+
+                            var monthSummaryTotalAmount = 0;
                             angular.forEach(filteredResults, function (transaction) {
+                                monthSummaryTotalAmount = monthSummaryTotalAmount + parseInt(transaction.amount);
                                 $scope.totalExpenses.totalAmount = parseInt(transaction.amount) + $scope.totalExpenses.totalAmount;
-                            })
+                            });
+                            monthSummaryObj.totalExpenses = monthSummaryTotalAmount;
+
+                            var idArr = monthWiseResult.id.split("-");
+                            monthSummaryObj.displayHeader = $scope.monthNames[idArr[0] - 1].short + " " + idArr[1];
+
+                            $scope.totalExpenses.transactions.push(monthSummaryObj);
                         }
                     })
                 });
