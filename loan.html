@@ -167,31 +167,92 @@
             </div>
         </div>
 
-        <!-- <div class="row" style="margin: 1%">
+        <div class="row" style="margin: 1%">
             <span class="col-12" style="text-align: center; font-weight: 600;">Summary</span>
             <table class="table table-striped">
                 <tbody>
                 <tr>
-                    <td>Initial Balance</td>
-                    <td>{{summary.initialAmount}}</td>
+                    <td>Total Loan</td>
+                    <td>{{overallLoanSummary.totalLoan}}</td>
                 </tr>
                 <tr>
-                    <td>Date</td>
-                    <td>{{getDisplayDate(summary.initialAmountDate)}}</td>
+                    <td>Total Principal</td>
+                    <td>{{overallLoanSummary.totalPrincipal}}</td>
                 </tr>
                 <tr>
-                    <td>Current Balance</td>
-                    <td>{{summary.finalAmount}}</td>
+                    <td>Total Interest</td>
+                    <td>{{overallLoanSummary.totalInterest}}</td>
                 </tr>
                 <tr>
-                    <td>Total Expenses</td>
-                    <td><a ng-href="{{redirectToPage('analytics')}}">{{totalExpenses.totalAmount}}</a></td>
+                    <td>Total Pending Amount</td>
+                    <td>{{overallLoanSummary.totalPending}}</td>
                 </tr>
                 </tbody>
             </table>
-        </div> -->
+        </div>
 
-        <div class="row" style="margin: 1%; margin-top: 4%" id="loanSummary">
+        <div class="row" style="margin: 1%;">
+            <div class="form-group col-6 dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{filter.selectedDisplayLoan ? filter.selectedDisplayLoan.loanName : 'Select Loan'}}
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <a class="dropdown-item" style="cursor: pointer;" ng-repeat="loanSummary in loanSummaryList"
+                       ng-class="{'active' : filter.selectedDisplayLoan.id == loanSummary.id}"
+                       ng-click="filter.selectedDisplayLoan = loanSummary">{{loanSummary.loanName}}</a>
+                </div>
+            </div>
+        </div>
+
+
+         <div class="row" style="margin: 1%; margin-top: 4%" id="loanSummary">
+
+            <div class="row" ng-if="filter.selectedDisplayLoan">
+                <div class="col-8" style="text-align: center; font-weight: 600;margin-top: 1%;">{{filter.selectedDisplayLoan.loanName}}</div>
+                <div class="col-4" style="font-weight: 600;margin-top: 1%;">
+                    <button type="button" style="padding: 1px 4px 1px 4px;font-size: 14px;background-color: red;font-weight: 600" class="btn btn-primary"
+                    ng-click="deleteLoan(filter.selectedDisplayLoan)">Delete Loan</button>
+                </div>
+                <br>
+                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Amount : {{filter.selectedDisplayLoan.loanAmount}}</span>
+                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Date : {{formatDate(filter.selectedDisplayLoan.loanDate)}}</span>
+                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest in Rs : {{filter.selectedDisplayLoan.interestInRs}}</span>
+                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest in Percent : {{filter.selectedDisplayLoan.interestInperc}}</span>
+                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Remaining Amount : {{filter.selectedDisplayLoan.loanRemaining}}</span>
+                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest calculated from : {{formatDate(filter.selectedDisplayLoan.lastInterestPaid)}}</span>
+                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest : {{calculateInterest(filter.selectedDisplayLoan)}}</span>
+                
+                <br>
+                <div class="col-12" style="text-align: center; font-weight: 600;margin-top: 1%;">Payments</div>
+                <table class="table table-fixed col-12" style="margin-top:1%">
+                    <thead>
+                        <tr>
+                            <th class="col-2" style="text-align: left;padding-left: 0.6%;">Date</th>
+                            <th class="col-3" style="text-align: left;padding-left: 2%;">Description</th>
+                            <th class="col-2" style="text-align: left;padding-left: 2%;">Interest</th>
+                            <th class="col-2" style="text-align: left;padding-left: 2%;">Principle</th>
+                            <th class="col-2">Actn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="payment in filter.selectedDisplayLoan.payments | orderBy: 'date':true">
+                            <td class="col-3" style="padding-left: 0.6%">{{formatDate(payment.date)}}</td>
+                            <td class="col-3">{{payment.description}}</td>
+                            <td class="col-2">{{payment.interest}}</td>
+                            <td class="col-2">{{payment.principle}}</td>
+                            <td class="col-2">
+                                <button type="button" style="padding: 1px 4px 1px 4px;font-size: 15px;background-color: red;font-weight: 600" class="btn btn-primary"
+                                        ng-click="deleteLoanPayment(filter.selectedDisplayLoan, payment)">Del</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            
+            </div>
+        </div>
+
+        <!-- <div class="row" style="margin: 1%; margin-top: 4%" id="loanSummary">
 
             <div class="row" ng-repeat="loanSummary in loanSummaryList | orderBy: 'sortKey':true" ng-if="loanSummaryList.length > 0">
                 <div class="col-8" style="text-align: center; font-weight: 600;margin-top: 1%;">{{loanSummary.loanName}}</div>
@@ -235,7 +296,7 @@
                 </table>
             
             </div>
-        </div>
+        </div> -->
 
 
 
