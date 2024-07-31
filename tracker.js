@@ -218,7 +218,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
 
     $scope.fileName = "backup" + "-" + getFormattedDateTime(new Date());
 
-    $scope.DEFAULT_OBJECTS = { "SUMMARY_KEY": "summary-key", "MONTH_KEY": "month-key", "SOURCE_INFO_KEY": "source-info-key", "FILTERS_INFO_KEY": "filters-info-key", "MAIN_KEY": "main-key" };
+    $scope.DEFAULT_OBJECTS = { "SUMMARY_KEY": "summary-key", "MONTH_KEY": "month-key", "SOURCE_INFO_KEY": "source-info-key", "FILTERS_INFO_KEY": "filters-info-key", "MAIN_KEY": "main-key", "LOANS_KEY" : "loans-key", "LEND_KEY" : "lend-key" };
 
     $scope.sourceInfo = getDefaultObject($scope.DEFAULT_OBJECTS.SOURCE_INFO_KEY);
     $scope.initialAmount = 0;
@@ -238,11 +238,17 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     $scope.totalExpenses = { transactions: [], totalAmount: 0 };
     $scope.analyticsFilterKeyWords = [];
 
-    $scope.filter = { "selectedYear": new Date().getFullYear(), "selectedMonth": new Date().getMonth() };
+    $scope.loan = {};
+    $scope.loanSummaryList = [];
+
+    $scope.lent = {};
+    $scope.lendSummaryList = [];
+
+    $scope.filter = { "selectedYear": new Date().getFullYear(), "selectedMonth": new Date().getMonth() , "selectedLoan" : null, "selectedLend" : null};
 
 
     $scope.DATABASE = "budget-tracker";
-    $scope.STORES = { SOURCE_SUMMARY: "source-summary", MONTH_SUMMARY: "month-summary", SOURCE_INFO: "source-info", FILTERS_INFO: "filters-info" };
+    $scope.STORES = { SOURCE_SUMMARY: "source-summary", MONTH_SUMMARY: "month-summary", SOURCE_INFO: "source-info", FILTERS_INFO: "filters-info", LOAN_SUMMARY: "loan-summary", LEND_SUMMARY: "lend-summary" };
 
 
     //Backup and Restore related
@@ -292,6 +298,18 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                 monthValue.id = monthKey;
                 monthStore.put(monthValue);
 
+                const loanStore = db.createObjectStore($scope.STORES.LOAN_SUMMARY, { keyPath: "id" });
+                var loanKey = getLoanKey() + "-test";
+                var loanSummary = getDefaultObject($scope.DEFAULT_OBJECTS.LOANS_KEY);
+                loanSummary.id = loanKey;
+                loanStore.put(loanSummary);
+
+                const lendStore = db.createObjectStore($scope.STORES.LEND_SUMMARY, { keyPath: "id" });
+                var lendKey = getLentKey() + "-test";
+                var lendSummary = getDefaultObject($scope.DEFAULT_OBJECTS.LEND_KEY);
+                lendSummary.id = lendKey;
+                lendStore.put(lendSummary);
+
             };
 
             request.onsuccess = function () {
@@ -339,6 +357,8 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             if (result == "success") {
                 $scope.fetchTransactions();
                 $scope.fetchAnalytics();
+                $scope.fetchLoans();
+                $scope.fetchLendDetails();
             }
         });
     };
@@ -892,6 +912,30 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             obj[$scope.STORES.SOURCE_SUMMARY] = [getDefaultObject($scope.DEFAULT_OBJECTS.SUMMARY_KEY)];
             obj[$scope.STORES.MONTH_SUMMARY] = [getDefaultObject($scope.DEFAULT_OBJECTS.MONTH_KEY)];
             return obj;
+        } else if (type === $scope.DEFAULT_OBJECTS.LOANS_KEY) {
+            return {
+                "loanName" : null,
+                "loanAmount": 0,
+                "loanDate": null,
+                "interestInRs": 0,
+                "interestInperc": 0,
+                "payments": [],
+                "loanRemaining": 0,
+                "maxId": 0,
+                "id": getLoanKey()
+              }
+        } else if (type === $scope.DEFAULT_OBJECTS.LEND_KEY) {
+            return {
+                "loanName" : null,
+                "loanAmount": 0,
+                "loanDate": null,
+                "interestInRs": 0,
+                "interestInperc": 0,
+                "payments": [],
+                "loanRemaining": 0,
+                "maxId": 0,
+                "id": getLentKey()
+              }
         }
     }
 
@@ -1046,5 +1090,417 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         printWindow.document.close();
         printWindow.print();
     }
+
+
+
+
+
+
+    //Loan Summary
+
+    $scope.AddLoan = function () {
+        var loanStore = $scope.STORES.LOAN_SUMMARY;
+        var connection = initializeDBConnection();
+        connection.onsuccess = function () {
+            const db = connection.result;
+            const transaction = db.transaction(loanStore, "readwrite");
+
+            const store = transaction.objectStore(loanStore);
+
+            var loanDate = $scope.loan.loanDate;
+            var loanKey = getLoanKey();
+
+            var query = store.get(loanKey);
+            query.onsuccess = function () {
+                var loanSummary = query.result ? query.result : getDefaultObject($scope.DEFAULT_OBJECTS.LOANS_KEY, loanDate);
+                
+                loanSummary.loanName = $scope.loan.loanName;
+                loanSummary.loanAmount = parseFloat($scope.loan.loanAmount);
+                loanSummary.loanDate = loanDate;
+                loanSummary.interestInRs = $scope.loan.interestInRs ? parseFloat($scope.loan.interestInRs) : $scope.loan.interestInRs;
+                loanSummary.interestInperc = $scope.loan.interestInperc ? parseFloat($scope.loan.interestInperc) : $scope.loan.interestInperc;
+                loanSummary.loanRemaining = loanSummary.loanAmount;
+                loanSummary.lastInterestPaid = loanDate;
+                store.put(loanSummary);
+
+            };
+
+            transaction.oncomplete = function () {
+                db.close();
+                window.location.reload();
+            };
+        };
+
+        connection.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    }
+
+    $scope.fetchLoans = function () {
+        var loanStore = $scope.STORES.LOAN_SUMMARY;
+
+        var connection = initializeDBConnection();
+        connection.onsuccess = function () {
+            const db = connection.result;
+            const transaction = db.transaction(loanStore, "readwrite");
+            const store = transaction.objectStore(loanStore);
+            var loanSummaryQuery = store.getAll();
+            loanSummaryQuery.onsuccess = function () {
+                $scope.$apply(function () {
+                    $scope.loanSummaryList = loanSummaryQuery.result ? loanSummaryQuery.result : [];
+                    $scope.loanSummaryList = $scope.loanSummaryList.filter(function (loan) {
+                        return loan.id.toString().indexOf("test") == -1;
+                    });
+                });
+            };
+            transaction.oncomplete = function () {
+                db.close();
+            };
+        };
+
+        connection.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    }
+
+    $scope.deleteLoan = function (loan) {
+        var loanStore = $scope.STORES.LOAN_SUMMARY;
+        var connection = initializeDBConnection();
+        connection.onsuccess = function () {
+            const db = connection.result;
+            const transaction = db.transaction(loanStore, "readwrite");
+
+            const store = transaction.objectStore(loanStore);
+
+            var loanKey = loan.id;
+
+            var query = store.get(loanKey);
+            query.onsuccess = function () {
+                if (query.result) {
+                    store.delete(loanKey);
+                }
+            };
+
+            transaction.oncomplete = function () {
+                db.close();
+                window.location.reload();
+            };
+        };
+
+        connection.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    };
+
+    $scope.addLoanPayment = function (loanDetails, payment) {
+        var loanStore = $scope.STORES.LOAN_SUMMARY;
+        var connection = initializeDBConnection();
+        connection.onsuccess = function () {
+            const db = connection.result;
+            const transaction = db.transaction(loanStore, "readwrite");
+
+            const store = transaction.objectStore(loanStore);
+
+            var loanKey = loanDetails.id;
+
+            var query = store.get(loanKey);
+            query.onsuccess = function () {
+                if (query.result) {
+                    var loanSummary = query.result;
+                    var maxId = loanSummary.maxId + 1;
+                    payment.id = maxId;
+                    loanSummary.payments.push(payment);
+                    loanSummary.maxId = maxId;
+                    var interest = payment.interest ? parseFloat(payment.interest) : 0;
+                    var principle = payment.principle ? parseFloat(payment.principle) : 0;
+                    loanSummary.loanRemaining = parseFloat(loanSummary.loanRemaining) - principle;
+                    if (interest > 0) {
+                        var interestPaidList = loanSummary.payments.filter(function (payment) {
+                            return payment.interest != undefined && payment.interest > 0;
+                        });
+                        interestPaidList.sort(function(a,b){return new Date(b.date).getTime()-new Date(a.date).getTime()});
+                        loanSummary.lastInterestPaid = interestPaidList.length > 0 ? interestPaidList[0].date : loanSummary.loanDate;;
+                    }
+                    store.put(loanSummary);
+                }
+            };
+
+            transaction.oncomplete = function () {
+                db.close();
+                window.location.reload();
+            };
+        };
+
+        connection.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    };
+
+
+    $scope.deleteLoanPayment = function (loanDetails, payment) {
+        var loanStore = $scope.STORES.LOAN_SUMMARY;
+        var connection = initializeDBConnection();
+        connection.onsuccess = function () {
+            const db = connection.result;
+            const transaction = db.transaction(loanStore, "readwrite");
+
+            const store = transaction.objectStore(loanStore);
+
+            var loanKey = loanDetails.id;
+
+            var query = store.get(loanKey);
+            query.onsuccess = function () {
+                if (query.result) {
+                    var loanSummary = query.result;
+                    var updatedList = loanSummary.payments.filter(function (obj) {
+                        return (obj.id != payment.id);
+                    });
+                    loanSummary.payments = updatedList;
+                    var interest = payment.interest ? payment.interest : 0;
+                    var principle = payment.principle ? payment.principle : 0;
+                    loanSummary.loanRemaining = parseInt(loanSummary.loanRemaining) + parseInt(principle);
+                    if (interest > 0) {
+                        var interestPaidList = loanSummary.payments.filter(function (payment) {
+                            return payment.interest != undefined && payment.interest > 0;
+                        });
+                        interestPaidList.sort(function(a,b){return new Date(b.date).getTime()-new Date(a.date).getTime()});
+                        loanSummary.lastInterestPaid = interestPaidList.length > 0 ? interestPaidList[0].date : loanSummary.loanDate;
+                    }
+                    store.put(loanSummary);
+                }
+            };
+
+            transaction.oncomplete = function () {
+                db.close();
+                window.location.reload();
+            };
+        };
+
+        connection.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    };
+
+    function getLoanKey() {
+        return new Date().getTime()
+    }
+
+    //End of Loan Methods
+
+
+    // Start of Lent Methods
+
+    $scope.AddLendDetails = function () {
+        var loanStore = $scope.STORES.LEND_SUMMARY;
+        var connection = initializeDBConnection();
+        connection.onsuccess = function () {
+            const db = connection.result;
+            const transaction = db.transaction(loanStore, "readwrite");
+
+            const store = transaction.objectStore(loanStore);
+
+            var loanDate = $scope.lent.loanDate;
+            var loanKey = getLentKey();
+
+            var query = store.get(loanKey);
+            query.onsuccess = function () {
+                var loanSummary = query.result ? query.result : getDefaultObject($scope.DEFAULT_OBJECTS.LEND_KEY, loanDate);
+                
+                loanSummary.loanName = $scope.lent.loanName;
+                loanSummary.loanAmount = parseFloat($scope.lent.loanAmount);
+                loanSummary.loanDate = loanDate;
+                loanSummary.interestInRs = $scope.lent.interestInRs ? parseFloat($scope.lent.interestInRs) : $scope.lent.interestInRs;
+                loanSummary.interestInperc = $scope.lent.interestInperc ? parseFloat($scope.lent.interestInperc) : $scope.lent.interestInperc;
+                loanSummary.loanRemaining = loanSummary.loanAmount;
+                loanSummary.lastInterestPaid = loanDate;
+                store.put(loanSummary);
+
+            };
+
+            transaction.oncomplete = function () {
+                db.close();
+                window.location.reload();
+            };
+        };
+
+        connection.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    }
+
+    $scope.fetchLendDetails = function () {
+        var loanStore = $scope.STORES.LEND_SUMMARY;
+
+        var connection = initializeDBConnection();
+        connection.onsuccess = function () {
+            const db = connection.result;
+            const transaction = db.transaction(loanStore, "readwrite");
+            const store = transaction.objectStore(loanStore);
+            var loanSummaryQuery = store.getAll();
+            loanSummaryQuery.onsuccess = function () {
+                $scope.$apply(function () {
+                    $scope.lendSummaryList = loanSummaryQuery.result ? loanSummaryQuery.result : [];
+                    $scope.lendSummaryList = $scope.lendSummaryList.filter(function (loan) {
+                        return loan.id.toString().indexOf("test") == -1;
+                    });
+                });
+            };
+            transaction.oncomplete = function () {
+                db.close();
+            };
+        };
+
+        connection.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    }
+
+    $scope.deleteLendDetails = function (loan) {
+        var loanStore = $scope.STORES.LEND_SUMMARY;
+        var connection = initializeDBConnection();
+        connection.onsuccess = function () {
+            const db = connection.result;
+            const transaction = db.transaction(loanStore, "readwrite");
+
+            const store = transaction.objectStore(loanStore);
+
+            var loanKey = loan.id;
+
+            var query = store.get(loanKey);
+            query.onsuccess = function () {
+                if (query.result) {
+                    store.delete(loanKey);
+                }
+            };
+
+            transaction.oncomplete = function () {
+                db.close();
+                window.location.reload();
+            };
+        };
+
+        connection.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    };
+
+    $scope.addLendPayment = function (loanDetails, payment) {
+        var loanStore = $scope.STORES.LEND_SUMMARY;
+        var connection = initializeDBConnection();
+        connection.onsuccess = function () {
+            const db = connection.result;
+            const transaction = db.transaction(loanStore, "readwrite");
+
+            const store = transaction.objectStore(loanStore);
+
+            var loanKey = loanDetails.id;
+
+            var query = store.get(loanKey);
+            query.onsuccess = function () {
+                if (query.result) {
+                    var loanSummary = query.result;
+                    var maxId = loanSummary.maxId + 1;
+                    payment.id = maxId;
+                    loanSummary.payments.push(payment);
+                    loanSummary.maxId = maxId;
+                    var interest = payment.interest ? parseFloat(payment.interest) : 0;
+                    var principle = payment.principle ? parseFloat(payment.principle) : 0;
+                    loanSummary.loanRemaining = parseFloat(loanSummary.loanRemaining) - principle;
+                    if (interest > 0) {
+                        var interestPaidList = loanSummary.payments.filter(function (payment) {
+                            return payment.interest != undefined && payment.interest > 0;
+                        });
+                        interestPaidList.sort(function(a,b){return new Date(b.date).getTime()-new Date(a.date).getTime()});
+                        loanSummary.lastInterestPaid = interestPaidList.length > 0 ? interestPaidList[0].date : loanSummary.loanDate;
+                    }
+                    store.put(loanSummary);
+                }
+            };
+
+            transaction.oncomplete = function () {
+                db.close();
+                window.location.reload();
+            };
+        };
+
+        connection.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    };
+
+
+    $scope.deleteLendPayment = function (loanDetails, payment) {
+        var loanStore = $scope.STORES.LEND_SUMMARY;
+        var connection = initializeDBConnection();
+        connection.onsuccess = function () {
+            const db = connection.result;
+            const transaction = db.transaction(loanStore, "readwrite");
+
+            const store = transaction.objectStore(loanStore);
+
+            var loanKey = loanDetails.id;
+
+            var query = store.get(loanKey);
+            query.onsuccess = function () {
+                if (query.result) {
+                    var loanSummary = query.result;
+                    var updatedList = loanSummary.payments.filter(function (obj) {
+                        return (obj.id != payment.id);
+                    });
+                    loanSummary.payments = updatedList;
+                    var interest = payment.interest ? payment.interest : 0;
+                    var principle = payment.principle ? payment.principle : 0;
+                    loanSummary.loanRemaining = parseInt(loanSummary.loanRemaining) + parseInt(principle);
+                    if (interest > 0) {
+                        var interestPaidList = loanSummary.payments.filter(function (payment) {
+                            return payment.interest != undefined && payment.interest > 0;
+                        });
+                        interestPaidList.sort(function(a,b){return new Date(b.date).getTime()-new Date(a.date).getTime()});
+                        loanSummary.lastInterestPaid = interestPaidList.length > 0 ? interestPaidList[0].date : loanSummary.loanDate;
+                    }
+                    store.put(loanSummary);
+                }
+            };
+
+            transaction.oncomplete = function () {
+                db.close();
+                window.location.reload();
+            };
+        };
+
+        connection.onerror = function (event) {
+            console.error("An error occurred with IndexedDB");
+            console.error(event);
+        };
+    };
+
+    function getLentKey() {
+        return new Date().getTime()
+    }
+
+    //End Lent methods
+
+    $scope.calculateInterest = function (loan) {
+        var interestInRs = loan.interestInRs;
+
+        var todayStart = new Date(new Date().setHours(0, 0, 0, 0))
+        //var todayEnd = new Date(new Date().setHours(23, 59, 59, 999))
+
+        var loanpaidStart = new Date(new Date(loan.lastInterestPaid).setHours(0, 0, 0, 0));
+
+        var days = (todayStart.getTime() - loanpaidStart.getTime()) / (1000 * 60 * 60 * 24);
+        var interestPermonth = interestInRs * (loan.loanAmount / 100);
+        return Math.ceil((interestPermonth * days) / 30);
+    }
+
 
 });
