@@ -240,11 +240,23 @@ app.controller("appCtrl", function ($scope, $http, $q) {
 
     $scope.loan = {};
     $scope.loanSummaryList = [];
+    $scope.overallLoanSummary = {
+        "totalLoan" : 0,
+        "totalInterest" : 0,
+        "totalPrincipal" : 0,
+        "totalPending" : 0
+    };
 
     $scope.lent = {};
     $scope.lendSummaryList = [];
+    $scope.overallLendSummary = {
+        "totalLent" : 0,
+        "totalInterest" : 0,
+        "totalPrincipal" : 0,
+        "totalAmount" : 0
+    };
 
-    $scope.filter = { "selectedYear": new Date().getFullYear(), "selectedMonth": new Date().getMonth() , "selectedLoan" : null, "selectedLend" : null};
+    $scope.filter = { "selectedYear": new Date().getFullYear(), "selectedMonth": new Date().getMonth() , "selectedLoan" : null, "selectedDisplayLoan" : null, "selectedLend" : null, "selectedDisplayLend" : null};
 
 
     $scope.DATABASE = "budget-tracker";
@@ -1152,6 +1164,13 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     $scope.loanSummaryList = $scope.loanSummaryList.filter(function (loan) {
                         return loan.id.toString().indexOf("test") == -1;
                     });
+
+                    angular.forEach($scope.loanSummaryList, function (loanSummary) {
+                        $scope.overallLoanSummary.totalLoan = $scope.overallLoanSummary.totalLoan + loanSummary.loanAmount;
+                        $scope.overallLoanSummary.totalPrincipal = $scope.overallLoanSummary.totalPrincipal + loanSummary.loanRemaining;
+                        $scope.overallLoanSummary.totalInterest = $scope.overallLoanSummary.totalInterest + $scope.calculateInterest(loanSummary);
+                        $scope.overallLoanSummary.totalPending = $scope.overallLoanSummary.totalPending + loanSummary.loanRemaining + $scope.calculateInterest(loanSummary);
+                    });
                 });
             };
             transaction.oncomplete = function () {
@@ -1348,6 +1367,13 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     $scope.lendSummaryList = loanSummaryQuery.result ? loanSummaryQuery.result : [];
                     $scope.lendSummaryList = $scope.lendSummaryList.filter(function (loan) {
                         return loan.id.toString().indexOf("test") == -1;
+                    });
+
+                    angular.forEach($scope.lendSummaryList, function (lendSummary) {
+                        $scope.overallLendSummary.totalLent = $scope.overallLendSummary.totalLent + lendSummary.loanAmount;
+                        $scope.overallLendSummary.totalPrincipal = $scope.overallLendSummary.totalPrincipal + lendSummary.loanRemaining;
+                        $scope.overallLendSummary.totalInterest = $scope.overallLendSummary.totalInterest + $scope.calculateInterest(lendSummary);
+                        $scope.overallLendSummary.totalAmount = $scope.overallLendSummary.totalAmount + lendSummary.loanRemaining + $scope.calculateInterest(lendSummary);
                     });
                 });
             };
