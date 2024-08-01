@@ -167,6 +167,40 @@
             </div>
         </div>
 
+        <div class="accordion" id="inputForms">
+            <div class="card">
+                <div class="card-header" id="addSourceForm">
+                    <h2 class="mb-0">
+                        <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
+                            data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                            Add KeyWord Filters
+                        </button>
+                    </h2>
+                </div>
+                <div id="collapseOne" class="collapse" aria-labelledby="addSourceForm" data-parent="#inputForms">
+                    <div class="card-body">
+                        <form class="form-inline col-12" autocomplete="on">
+                            <div class="form-group col-8">
+                                <input type="text" class="form-control" ng-model="filterKeyWord"
+                                    placeholder="Enter Key Word">
+                            </div>
+                            <div class="form-group col-4">
+                                <button type="submit" class="btn btn-primary col-12"
+                                    style="padding: 4px 1px 4px 1px;"
+                                    ng-click="addLoanFilterKeyWords(filterKeyWord)">Add</button>
+                            </div>
+                        </form>
+                        <ul>
+                            <li ng-repeat="keyWord in analyticsFilterKeyWords">
+                                {{keyWord}} <span style="padding-left: 5%"
+                                    ng-click="deleteLoanFilterKeyWords(keyWord)">x</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row" style="margin: 1%">
             <span class="col-12" style="text-align: center; font-weight: 600;">Summary</span>
             <table class="table table-striped">
@@ -221,8 +255,9 @@
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest in Percent : {{filter.selectedDisplayLoan.interestInperc}}</span>
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Remaining Amount : {{filter.selectedDisplayLoan.loanRemaining}}</span>
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest calculated from : {{formatDate(filter.selectedDisplayLoan.lastInterestPaid)}}</span>
-                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest : {{calculateInterest(filter.selectedDisplayLoan)}}</span>
-                
+                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest : {{calculateInterest(filter.selectedDisplayLoan)}} ({{calculateDays(filter.selectedDisplayLoan)}} days)</span>
+                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Total Remaining Amount : {{filter.selectedDisplayLoan.loanRemaining + calculateInterest(filter.selectedDisplayLoan)}}</span>
+
                 <br>
                 <div class="col-12" style="text-align: center; font-weight: 600;margin-top: 1%;">Payments</div>
                 <table class="table table-fixed col-12" style="margin-top:1%">
