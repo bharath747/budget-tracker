@@ -255,7 +255,7 @@
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest in Percent : {{filter.selectedDisplayLoan.interestInperc}}</span>
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Remaining Amount : {{filter.selectedDisplayLoan.loanRemaining}}</span>
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest calculated from : {{formatDate(filter.selectedDisplayLoan.lastInterestPaid)}}</span>
-                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest : {{calculateInterest(filter.selectedDisplayLoan)}}</span>
+                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest : {{calculateInterest(filter.selectedDisplayLoan)}} ({{calculateDays(filter.selectedDisplayLoan)}} days)</span>
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Total Remaining Amount : {{filter.selectedDisplayLoan.loanRemaining + calculateInterest(filter.selectedDisplayLoan)}}</span>
 
                 <br>
