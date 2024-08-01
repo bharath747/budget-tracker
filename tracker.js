@@ -1038,13 +1038,13 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         if (text != null && list != null && list.length > 0) {
             for (let i = 0; i < list.length; i++) {
                 let value = list[i];
-                hasTextValue = text.toLowerCase().indexOf(value.toLowerCase()) > -1;
-                if (hasTextValue) {
+                hastextValue = text.toLowerCase().indexOf(value.toLowerCase()) > -1;
+                if (hastextValue) {
                     break;
                 }
             }
         }
-        return hasTextValue;
+        return hastextValue;
     }
 
     $scope.redirectToPage = function (page) {
@@ -1152,6 +1152,14 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     $scope.fetchLoans = function () {
         var loanStore = $scope.STORES.LOAN_SUMMARY;
 
+        $scope.loanSummaryList = [];
+        $scope.overallLoanSummary = {
+            "totalLoan" : 0,
+            "totalInterest" : 0,
+            "totalPrincipal" : 0,
+            "totalPending" : 0
+        };
+
         var connection = initializeDBConnection();
         connection.onsuccess = function () {
             const db = connection.result;
@@ -1163,6 +1171,10 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     $scope.loanSummaryList = loanSummaryQuery.result ? loanSummaryQuery.result : [];
                     $scope.loanSummaryList = $scope.loanSummaryList.filter(function (loan) {
                         return loan.id.toString().indexOf("test") == -1;
+                    });
+
+                    $scope.loanSummaryList = $scope.loanSummaryList.filter(function (loanSummary) {
+                        return isEligibleCandidateForSubFilters($scope.analyticsFilterKeyWords, loanSummary.loanName);
                     });
 
                     angular.forEach($scope.loanSummaryList, function (loanSummary) {
@@ -1236,7 +1248,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     var interest = payment.interest ? parseFloat(payment.interest) : 0;
                     var principle = payment.principle ? parseFloat(payment.principle) : 0;
                     loanSummary.loanRemaining = parseFloat(loanSummary.loanRemaining) - principle;
-                    if (interest > 0) {
+                    if (principle == 0 && interest > 0) {
                         var interestPaidList = loanSummary.payments.filter(function (payment) {
                             return payment.interest != undefined && payment.interest > 0;
                         });
@@ -1309,6 +1321,24 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         return new Date().getTime()
     }
 
+    $scope.addLoanFilterKeyWords = function (keyWord) {
+        if (keyWord) {
+            $scope.analyticsFilterKeyWords.push(keyWord);
+            $scope.filterKeyWord = null;
+            $scope.fetchLoanDetails();
+        }
+    }
+
+    $scope.deleteLoanFilterKeyWords = function (keyWord) {
+        if (keyWord) {
+            var updatedList = $scope.analyticsFilterKeyWords.filter(function (obj) {
+                return (obj != keyWord);
+            });
+            $scope.analyticsFilterKeyWords = updatedList;
+            $scope.fetchLoanDetails();
+        }
+    }
+
     //End of Loan Methods
 
 
@@ -1355,6 +1385,13 @@ app.controller("appCtrl", function ($scope, $http, $q) {
 
     $scope.fetchLendDetails = function () {
         var loanStore = $scope.STORES.LEND_SUMMARY;
+        $scope.lendSummaryList = [];
+        $scope.overallLendSummary = {
+            "totalLent" : 0,
+            "totalInterest" : 0,
+            "totalPrincipal" : 0,
+            "totalAmount" : 0
+        };
 
         var connection = initializeDBConnection();
         connection.onsuccess = function () {
@@ -1367,6 +1404,10 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     $scope.lendSummaryList = loanSummaryQuery.result ? loanSummaryQuery.result : [];
                     $scope.lendSummaryList = $scope.lendSummaryList.filter(function (loan) {
                         return loan.id.toString().indexOf("test") == -1;
+                    });
+
+                    $scope.lendSummaryList = $scope.lendSummaryList.filter(function (lendSummary) {
+                        return isEligibleCandidateForSubFilters($scope.analyticsFilterKeyWords, lendSummary.loanName);
                     });
 
                     angular.forEach($scope.lendSummaryList, function (lendSummary) {
@@ -1440,7 +1481,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     var interest = payment.interest ? parseFloat(payment.interest) : 0;
                     var principle = payment.principle ? parseFloat(payment.principle) : 0;
                     loanSummary.loanRemaining = parseFloat(loanSummary.loanRemaining) - principle;
-                    if (interest > 0) {
+                    if (principle == 0 && interest > 0) {
                         var interestPaidList = loanSummary.payments.filter(function (payment) {
                             return payment.interest != undefined && payment.interest > 0;
                         });
@@ -1513,6 +1554,24 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         return new Date().getTime()
     }
 
+    $scope.addLendFilterKeyWords = function (keyWord) {
+        if (keyWord) {
+            $scope.analyticsFilterKeyWords.push(keyWord);
+            $scope.filterKeyWord = null;
+            $scope.fetchLendDetails();
+        }
+    }
+
+    $scope.deleteLendFilterKeyWords = function (keyWord) {
+        if (keyWord) {
+            var updatedList = $scope.analyticsFilterKeyWords.filter(function (obj) {
+                return (obj != keyWord);
+            });
+            $scope.analyticsFilterKeyWords = updatedList;
+            $scope.fetchLendDetails();
+        }
+    }
+
     //End Lent methods
 
     $scope.calculateInterest = function (loan) {
@@ -1524,9 +1583,25 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         var loanpaidStart = new Date(new Date(loan.lastInterestPaid).setHours(0, 0, 0, 0));
 
         var days = (todayStart.getTime() - loanpaidStart.getTime()) / (1000 * 60 * 60 * 24);
-        var interestPermonth = interestInRs * (loan.loanAmount / 100);
+        days = Math.ceil(days);
+        var interestPermonth = interestInRs * (loan.loanRemaining / 100);
         return Math.ceil((interestPermonth * days) / 30);
     }
 
+    $scope.calculateDays = function (loan) {
+        var todayStart = new Date(new Date().setHours(0, 0, 0, 0))
+        var loanpaidStart = new Date(new Date(loan.lastInterestPaid).setHours(0, 0, 0, 0));
+        var days = (todayStart.getTime() - loanpaidStart.getTime()) / (1000 * 60 * 60 * 24);
+        return Math.ceil(days);
+    }
 
+    function isEligibleCandidateForSubFilters(subFilter, text) {
+        var isEligible = false;
+        if (subFilter.length == 0) {
+            isEligible = true;
+        } else if(subFilter.length > 0) {
+            isEligible = hasText(subFilter, text);
+        }
+        return isEligible;
+    }
 });
