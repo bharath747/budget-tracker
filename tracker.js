@@ -1428,8 +1428,8 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                     angular.forEach($scope.lendSummaryList, function (lendSummary) {
                         $scope.overallLendSummary.totalLent = $scope.overallLendSummary.totalLent + lendSummary.loanAmount;
                         $scope.overallLendSummary.totalPrincipal = $scope.overallLendSummary.totalPrincipal + lendSummary.loanRemaining;
-                        $scope.overallLendSummary.totalInterest = $scope.overallLendSummary.totalInterest + $scope.calculateInterest(lendSummary);
-                        $scope.overallLendSummary.totalAmount = $scope.overallLendSummary.totalAmount + lendSummary.loanRemaining + $scope.calculateInterest(lendSummary);
+                        $scope.overallLendSummary.totalInterest = $scope.overallLendSummary.totalInterest + $scope.calculateInterestByMonthAndDate(lendSummary);
+                        $scope.overallLendSummary.totalAmount = $scope.overallLendSummary.totalAmount + lendSummary.loanRemaining + $scope.calculateInterestByMonthAndDate(lendSummary);
 
                         $scope.overallLendSummary.receivedAmount = $scope.overallLendSummary.receivedAmount + fetchReceivedLendPayments(lendSummary);
                     });
