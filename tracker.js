@@ -257,11 +257,11 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     };
 
     $scope.interestCalculator = {
-        "lastInterestPaid" : new Date().toLocaleDateString(),
-        "endDate" : new Date().toLocaleDateString(),
-        "loanRemaining" : 0,
-        "interestInRs" : 0,
-        "interestInperc" : 0,
+        "lastInterestPaid" : null,
+        "endDate" : null,
+        "loanRemaining" : null,
+        "interestInRs" : null,
+        "interestInperc" : null,
         "interestPerMonth" : 0,
         "interestPerDay" :  0,
         "totalDays" : "0 months 0 days",
@@ -1609,11 +1609,26 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     }
 
     $scope.calculateInterestByMonthAndDate = function (loan) {
-        var monthsAndDays = getMonthAndDayDifferenceByLoan(loan);
+        var todayStart = new Date(new Date().setHours(0, 0, 0, 0))
+        var yesterdayStart = getPreviousDayDate(todayStart);
+        var monthsAndDays = getMonthAndDayDifferenceByLoan(loan, yesterdayStart);
     
         var totalInterestForMonths = $scope.getInterestPerMonth(loan) * monthsAndDays.months;
         var totalInterestForDays = $scope.getInterestPerDay(loan) * monthsAndDays.days
         return totalInterestForMonths + totalInterestForDays;
+    }
+
+    $scope.calculateInterestByMonthAndDateWithEndDate = function (loan, endDate) {
+        var monthsAndDays = getMonthAndDayDifferenceByLoan(loan, endDate);
+    
+        var totalInterestForMonths = $scope.getInterestPerMonth(loan) * monthsAndDays.months;
+        var totalInterestForDays = $scope.getInterestPerDay(loan) * monthsAndDays.days
+        return totalInterestForMonths + totalInterestForDays;
+    }
+
+    $scope.getInterestEndDate = function () {
+        var todayStart = new Date(new Date().setHours(0, 0, 0, 0))
+        return $scope.formatDate(getPreviousDayDate(todayStart));
     }
 
     function getPreviousDayDate(currentDate) {
@@ -1626,12 +1641,11 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         return date;
     }
 
-    function getMonthAndDayDifferenceByLoan(loan) {
-        var todayStart = new Date(new Date().setHours(0, 0, 0, 0))
-        var yesterdayStart = getPreviousDayDate(todayStart);
+    function getMonthAndDayDifferenceByLoan(loan, endDate) {
+        var endDateStart = new Date(endDate.setHours(0, 0, 0, 0))
 
         var loanpaidStart = new Date(new Date(loan.lastInterestPaid).setHours(0, 0, 0, 0));
-        return getMonthAndDayDifference(loanpaidStart, yesterdayStart);
+        return getMonthAndDayDifference(loanpaidStart, endDateStart);
     }
     
     function getMonthAndDayDifference(startDate, endDate) {
@@ -1666,7 +1680,14 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     }
 
     $scope.getCalculatedDisplayMonthsAndDays = function (loan) {
-        var monthsAndDays = getMonthAndDayDifferenceByLoan(loan);
+        var todayStart = new Date(new Date().setHours(0, 0, 0, 0))
+        var yesterdayStart = getPreviousDayDate(todayStart);
+        var monthsAndDays = getMonthAndDayDifferenceByLoan(loan, yesterdayStart);
+        return monthsAndDays.months + " months and " + monthsAndDays.days + " days"
+    }
+
+    $scope.getCalculatedDisplayMonthsAndDaysWithEndDate = function (loan, endDate) {
+        var monthsAndDays = getMonthAndDayDifferenceByLoan(loan, endDate);
         return monthsAndDays.months + " months and " + monthsAndDays.days + " days"
     }
 
@@ -1680,22 +1701,22 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             "interestInperc" : loan.interestInperc,
             "interestPerMonth" : $scope.getInterestPerMonth(loan),
             "interestPerDay" :  $scope.getInterestPerDay(loan),
-            "totalDays" : $scope.getCalculatedDisplayMonthsAndDays(loan),
-            "totalInterest" : $scope.calculateInterestByMonthAndDate(loan),
+            "totalDays" : $scope.getCalculatedDisplayMonthsAndDaysWithEndDate(loan, endDate),
+            "totalInterest" : $scope.calculateInterestByMonthAndDateWithEndDate(loan, endDate),
             "totalAmount" : 0
         }
-        $scope.interestCalculator.totalAmount = $scope.interestCalculator.totalInterest + $scope.interestCalculator.loanRemaining;
+        $scope.interestCalculator.totalAmount = parseInt($scope.interestCalculator.totalInterest) + parseInt($scope.interestCalculator.loanRemaining);
         $scope.interestCalculator.calculated = true;
         
     }
 
     $scope.resetInterestCalc = function () {
         $scope.interestCalculator = {
-            "lastInterestPaid" : new Date().toLocaleDateString(),
-            "endDate" : new Date().toLocaleDateString(),
-            "loanRemaining" : 0,
-            "interestInRs" : 0,
-            "interestInperc" : 0,
+            "lastInterestPaid" : new Date(),
+            "endDate" : new Date(),
+            "loanRemaining" : null,
+            "interestInRs" : null,
+            "interestInperc" : null,
             "interestPerMonth" : 0,
             "interestPerDay" :  0,
             "totalDays" : "0 months 0 days",
