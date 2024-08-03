@@ -286,18 +286,18 @@
                                        placeholder="Select Start Date">
                             </div>
                             <div class="form-group col-6">
-                                <input type="date" class="form-control" ng-model="interestCalculator.date"
+                                <input type="date" class="form-control" ng-model="interestCalculator.endDate"
                                        placeholder="Select End Date">
                             </div>
                             <div class="form-group col-6">
                                 <button type="submit" style="margin-left: 2%;" class="btn btn-primary col-10"
-                                        ng-click="calculateByInterestCalculatorForLoan(interestCalculator, interestCalculator.date)">Calculate</button>
+                                        ng-click="calculateByInterestCalculatorForLoan(interestCalculator, interestCalculator.endDate)">Calculate</button>
                             </div>
                         </form>
 
                         <div class="row" style="margin: 1%">
                             <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Amount : {{interestCalculator.loanRemaining}}</span>
-                            <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> From Date : {{formatDate(interestCalculator.loanDate)}}</span>
+                            <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> From Date : {{formatDate(interestCalculator.lastInterestPaid)}}</span>
                             <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> To Date : {{formatDate(interestCalculator.endDate)}}</span>
                             <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest in Rs : {{interestCalculator.interestInRs}}</span>
                             <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest in Percent : {{interestCalculator.interestInperc}}</span>
@@ -373,7 +373,7 @@
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest per day : {{getInterestPerDay(filter.selectedDisplayLend)}}</span>
 
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Remaining Amount : {{filter.selectedDisplayLend.loanRemaining}}</span>
-                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest calculated from : {{formatDate(filter.selectedDisplayLend.lastInterestPaid)}}</span>
+                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest calculated: {{formatDate(filter.selectedDisplayLend.lastInterestPaid)}} to {{getInterestEndDate()}}</span>
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest : {{calculateInterestByMonthAndDate(filter.selectedDisplayLend)}} ({{getCalculatedDisplayMonthsAndDays(filter.selectedDisplayLend)}})</span>
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Total Remaining Amount : {{filter.selectedDisplayLend.loanRemaining + calculateInterestByMonthAndDate(filter.selectedDisplayLend)}}</span>
 
