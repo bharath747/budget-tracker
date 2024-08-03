@@ -336,9 +336,51 @@
                     <td>Current total Amount</td>
                     <td>{{overallLendSummary.totalAmount}}</td>
                 </tr>
+                <tr>
+                    <td>Total Received Amount</td>
+                    <td>{{overallLendSummary.receivedAmount}}</td>
+                </tr>
                 </tbody>
             </table>
         </div>
+
+        <div class="accordion" id="inputForms">
+            <div class="card">
+                <div class="card-header" id="addSourceForm">
+                    <h2 class="mb-0">
+                        <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
+                            ng-click="fetchReceivedLendPayments()"
+                            data-target="#collapseReceivedPayment" aria-expanded="false" aria-controls="collapseReceivedPayment">
+                            Received Payments
+                        </button>
+                    </h2>
+                </div>
+                <div id="collapseReceivedPayment" class="collapse" aria-labelledby="addSourceForm" data-parent="#inputForms">
+                    <div class="card-body">
+                        <div class="row" ng-if="receivedLendPayments.length > 0">
+                            <table class="table table-fixed col-12" style="margin-top:1%">
+                                <thead>
+                                    <tr>
+                                        <th class="col-4" style="text-align: left;padding-left: 2%;">Loan Name</th>
+                                        <th class="col-4" style="text-align: left;padding-left: 2%;">Received</th>
+                                        <th class="col-4" style="text-align: left;padding-left: 2%;">Remaining</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="payment in receivedLendPayments">
+                                        <td class="col-4">{{payment.loanName}}</td>
+                                        <td class="col-4">{{payment.paidAmount}}</td>
+                                        <td class="col-4">{{payment.remainingAmount}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <div class="row" style="margin: 1%;">
             <div class="form-group col-6 dropdown">

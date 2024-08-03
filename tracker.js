@@ -255,6 +255,7 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         "totalPrincipal" : 0,
         "totalAmount" : 0
     };
+    $scope.receivedLendPayments = [];
 
     $scope.interestCalculator = {
         "lastInterestPaid" : null,
@@ -1403,7 +1404,8 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             "totalLent" : 0,
             "totalInterest" : 0,
             "totalPrincipal" : 0,
-            "totalAmount" : 0
+            "totalAmount" : 0,
+            "receivedAmount" : 0
         };
 
         var connection = initializeDBConnection();
@@ -1428,6 +1430,8 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                         $scope.overallLendSummary.totalPrincipal = $scope.overallLendSummary.totalPrincipal + lendSummary.loanRemaining;
                         $scope.overallLendSummary.totalInterest = $scope.overallLendSummary.totalInterest + $scope.calculateInterest(lendSummary);
                         $scope.overallLendSummary.totalAmount = $scope.overallLendSummary.totalAmount + lendSummary.loanRemaining + $scope.calculateInterest(lendSummary);
+
+                        $scope.overallLendSummary.receivedAmount = $scope.overallLendSummary.receivedAmount + fetchReceivedLendPayments(lendSummary);
                     });
                 });
             };
@@ -1440,6 +1444,27 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             console.error("An error occurred with IndexedDB");
             console.error(event);
         };
+    }
+
+    function fetchReceivedLendPayments(lendSummary) {
+        var totalReceivedAmount = 0;
+        angular.forEach(lendSummary.payments, function (payment) {
+            totalReceivedAmount = totalReceivedAmount + parseInt(payment.principle) + parseInt(payment.interest);
+        });
+        return totalReceivedAmount;
+    }
+
+    $scope.fetchReceivedLendPayments = function () {
+        $scope.receivedLendPayments = [];
+        angular.forEach($scope.lendSummaryList, function (lendSummary) {
+            if (lendSummary.payments.length > 0) {
+                var receivedPayment = {};
+                receivedPayment.loanName = lendSummary.loanName;
+                receivedPayment.paidAmount = fetchReceivedLendPayments(lendSummary);
+                receivedPayment.remainingAmount = lendSummary.loanRemaining + $scope.calculateInterestByMonthAndDate(lendSummary);
+                $scope.receivedLendPayments.push(receivedPayment);
+            }
+        });
     }
 
     $scope.deleteLendDetails = function (loan) {
