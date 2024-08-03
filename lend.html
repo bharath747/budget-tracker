@@ -215,7 +215,7 @@
                 <div id="collapseCalcOne" class="collapse" aria-labelledby="calculator" data-parent="#inputForms">
                     <div class="card-body">
                         <form class="form-inline col-12">
-                            <div class="form-group col-4 dropdown">
+                            <div class="form-group col-6 dropdown">
                                 <button class="btn btn-secondary dropdown-toggle" type="button"
                                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     {{filter.selectedLend ? filter.selectedLend.loanName : 'Select Lend'}}
@@ -226,11 +226,11 @@
                                        ng-click="filter.selectedLend = lendSummary">{{lendSummary.loanName}}</a>
                                 </div>
                             </div>
-                            <div class="form-group col-4">
+                            <div class="form-group col-6">
                                 <input type="date" class="form-control" ng-model="interestCalculator.date"
                                        placeholder="Select Date">
                             </div>
-                            <div class="form-group col-4">
+                            <div class="form-group col-12">
                                 <button type="submit" style="margin-left: 2%;" class="btn btn-primary col-10"
                                         ng-click="calculateByInterestCalculatorForLoan(filter.selectedLend, interestCalculator.date)">Calculate</button>
                             </div>
@@ -281,15 +281,15 @@
                                 <input type="text" class="form-control" ng-model="interestCalculator.interestInperc"
                                        placeholder="Interest in %">
                             </div>
-                            <div class="form-group col-4">
+                            <div class="form-group col-6">
                                 <input type="date" class="form-control" ng-model="interestCalculator.lastInterestPaid"
                                        placeholder="Select Start Date">
                             </div>
-                            <div class="form-group col-4">
+                            <div class="form-group col-6">
                                 <input type="date" class="form-control" ng-model="interestCalculator.date"
                                        placeholder="Select End Date">
                             </div>
-                            <div class="form-group col-4">
+                            <div class="form-group col-6">
                                 <button type="submit" style="margin-left: 2%;" class="btn btn-primary col-10"
                                         ng-click="calculateByInterestCalculatorForLoan(interestCalculator, interestCalculator.date)">Calculate</button>
                             </div>
