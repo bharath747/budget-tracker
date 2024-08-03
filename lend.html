@@ -130,7 +130,7 @@
                 <div id="collapseThree" class="collapse" aria-labelledby="paymentForm" data-parent="#inputForms">
                     <div class="card-body">
                         <form class="form-inline col-12">
-                            <div class="form-group col-6 dropdown">
+                            <div class="form-group col-12 dropdown">
                                 <button class="btn btn-secondary dropdown-toggle" type="button"
                                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     {{filter.selectedLend ? filter.selectedLend.loanName : 'Select Lend'}}
@@ -157,7 +157,7 @@
                                 <input type="text" class="form-control" ng-model="payment.description"
                                        placeholder="Description">
                             </div>
-                            <div class="form-group col-12">
+                            <div class="form-group col-6">
                                 <button type="submit" style="margin-left: 1%;" class="btn btn-primary col-12"
                                         ng-click="addLendPayment(filter.selectedLend, payment)">Submit</button>
                             </div>
@@ -215,7 +215,7 @@
                 <div id="collapseCalcOne" class="collapse" aria-labelledby="calculator" data-parent="#inputForms">
                     <div class="card-body">
                         <form class="form-inline col-12">
-                            <div class="form-group col-6 dropdown">
+                            <div class="form-group col-12 dropdown">
                                 <button class="btn btn-secondary dropdown-toggle" type="button"
                                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     {{filter.selectedLend ? filter.selectedLend.loanName : 'Select Lend'}}
@@ -230,7 +230,7 @@
                                 <input type="date" class="form-control" ng-model="interestCalculator.date"
                                        placeholder="Select Date">
                             </div>
-                            <div class="form-group col-12">
+                            <div class="form-group col-6">
                                 <button type="submit" style="margin-left: 2%;" class="btn btn-primary col-10"
                                         ng-click="calculateByInterestCalculatorForLoan(filter.selectedLend, interestCalculator.date)">Calculate</button>
                             </div>
