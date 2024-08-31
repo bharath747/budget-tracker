@@ -227,12 +227,12 @@
                                 </div>
                             </div>
                             <div class="form-group col-6">
-                                <input type="date" class="form-control" ng-model="interestCalculator.date"
+                                <input type="date" class="form-control" ng-model="interestCalculator.endDate"
                                        placeholder="Select Date">
                             </div>
                             <div class="form-group col-6">
                                 <button type="submit" style="margin-left: 2%;" class="btn btn-primary col-10"
-                                        ng-click="calculateByInterestCalculatorForLoan(filter.selectedLend, interestCalculator.date)">Calculate</button>
+                                        ng-click="calculateByInterestCalculatorForLoan(filter.selectedLend, interestCalculator.endDate)">Calculate</button>
                             </div>
                         </form>
 
@@ -299,6 +299,7 @@
                             <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Amount : {{interestCalculator.loanRemaining}}</span>
                             <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> From Date : {{formatDate(interestCalculator.lastInterestPaid)}}</span>
                             <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> To Date : {{formatDate(interestCalculator.endDate)}}</span>
+                            
                             <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest in Rs : {{interestCalculator.interestInRs}}</span>
                             <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest in Percent : {{interestCalculator.interestInperc}}</span>
 
@@ -325,16 +326,24 @@
                     <td>{{overallLendSummary.totalLent}}</td>
                 </tr>
                 <tr>
-                    <td>Total Principal</td>
+                    <td>Remaining Principal</td>
                     <td>{{overallLendSummary.totalPrincipal}}</td>
                 </tr>
                 <tr>
-                    <td>Total Interest</td>
+                    <td>Remaining Interest</td>
                     <td>{{overallLendSummary.totalInterest}}</td>
                 </tr>
                 <tr>
-                    <td>Current total Amount</td>
+                    <td>Remaining total Amount</td>
                     <td>{{overallLendSummary.totalAmount}}</td>
+                </tr>
+                <tr>
+                    <td>Total Principal Received</td>
+                    <td>{{overallLendSummary.receivedPrincipal}}</td>
+                </tr>
+                <tr>
+                    <td>Total Interest Received</td>
+                    <td>{{overallLendSummary.receivedInterest}}</td>
                 </tr>
                 <tr>
                     <td>Total Received Amount</td>
@@ -382,16 +391,33 @@
         </div>
 
 
-        <div class="row" style="margin: 1%;">
-            <div class="form-group col-6 dropdown">
+        <div class="row" style="margin: 1%; margin-bottom: -7%;">
+            <div class="form-group col-9 dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     {{filter.selectedDisplayLend ? filter.selectedDisplayLend.loanName : 'Select Lend'}}
                 </button>
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <a class="dropdown-item" style="cursor: pointer;" ng-repeat="lendSummary in lendSummaryList"
+                    <a class="dropdown-item" style="cursor: pointer;" ng-repeat="lendSummary in lendSummaryListFiltered"
                        ng-class="{'active' : filter.selectedDisplayLend.id == lendSummary.id}"
                        ng-click="filter.selectedDisplayLend = lendSummary">{{lendSummary.loanName}}</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" style="margin: 1%;">
+            <div class="form-group col-12" style="display: inline-flex;">
+                <div class="input-group-text col-5" style="margin-right: 1%;">
+                    <input type="checkbox" ng-value="filter.pendingLends"
+                           ng-change="fetchLendDetails()"
+                           ng-model="filter.pendingLends">
+                    <span style="padding-left: 1%;">Pending</span>
+                </div>
+                <div class="input-group-text col-5">
+                    <input type="checkbox" ng-value = "filter.completedLends"
+                    ng-change="fetchLendDetails()"
+                    ng-model="filter.completedLends">
+                    <span style="padding-left: 1%;">Completed</span>
                 </div>
             </div>
         </div>
@@ -411,13 +437,19 @@
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest in Rs : {{filter.selectedDisplayLend.interestInRs}}</span>
                 <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest in Percent : {{filter.selectedDisplayLend.interestInperc}}</span>
 
-                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest per month : {{getInterestPerMonth(filter.selectedDisplayLend)}}</span>
-                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest per day : {{getInterestPerDay(filter.selectedDisplayLend)}}</span>
+                <span class="col-10" ng-if="filter.selectedDisplayLend.loanRemaining > 0"
+                      style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest per month : {{getInterestPerMonth(filter.selectedDisplayLend)}}</span>
+                <span class="col-10" ng-if="filter.selectedDisplayLend.loanRemaining"
+                      style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest per day : {{getInterestPerDay(filter.selectedDisplayLend)}}</span>
 
-                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Remaining Amount : {{filter.selectedDisplayLend.loanRemaining}}</span>
-                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest calculated: {{formatDate(filter.selectedDisplayLend.lastInterestPaid)}} to {{getInterestEndDate()}}</span>
-                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest : {{calculateInterestByMonthAndDate(filter.selectedDisplayLend)}} ({{getCalculatedDisplayMonthsAndDays(filter.selectedDisplayLend)}})</span>
-                <span class="col-10" style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Total Remaining Amount : {{filter.selectedDisplayLend.loanRemaining + calculateInterestByMonthAndDate(filter.selectedDisplayLend)}}</span>
+                <span class="col-10" ng-if="filter.selectedDisplayLend.loanRemaining > 0"
+                      style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Remaining Amount : {{filter.selectedDisplayLend.loanRemaining}}</span>
+                <span class="col-10" ng-if="filter.selectedDisplayLend.loanRemaining > 0"
+                      style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest calculated: {{formatDate(filter.selectedDisplayLend.lastInterestPaid)}} to {{getInterestEndDate()}}</span>
+                <span class="col-10" ng-if="filter.selectedDisplayLend.loanRemaining > 0"
+                      style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Interest : {{calculateInterestByMonthAndDate(filter.selectedDisplayLend)}} ({{getCalculatedDisplayMonthsAndDays(filter.selectedDisplayLend)}})</span>
+                <span class="col-10" ng-if="filter.selectedDisplayLend.loanRemaining > 0"
+                      style="font-weight: 600;margin-bottom: 1%;text-align: left;font-size: 14px;"> Total Remaining Amount : {{filter.selectedDisplayLend.loanRemaining + calculateInterestByMonthAndDate(filter.selectedDisplayLend)}}</span>
 
                 
                 <br>
