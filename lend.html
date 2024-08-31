@@ -136,7 +136,7 @@
                                     {{filter.selectedLend ? filter.selectedLend.loanName : 'Select Lend'}}
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" style="cursor: pointer;" ng-repeat="lendSummary in lendSummaryList"
+                                    <a class="dropdown-item" style="cursor: pointer;" ng-repeat="lendSummary in lendSummaryListFiltered"
                                        ng-class="{'active' : filter.selectedLend.id == lendSummary.id}"
                                        ng-click="filter.selectedLend = lendSummary">{{lendSummary.loanName}}</a>
                                 </div>
@@ -221,7 +221,7 @@
                                     {{filter.selectedLend ? filter.selectedLend.loanName : 'Select Lend'}}
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" style="cursor: pointer;" ng-repeat="lendSummary in lendSummaryList"
+                                    <a class="dropdown-item" style="cursor: pointer;" ng-repeat="lendSummary in lendSummaryListFiltered"
                                        ng-class="{'active' : filter.selectedLend.id == lendSummary.id}"
                                        ng-click="filter.selectedLend = lendSummary">{{lendSummary.loanName}}</a>
                                 </div>
