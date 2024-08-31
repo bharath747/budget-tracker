@@ -460,16 +460,16 @@
                             <th class="col-2" style="text-align: left;padding-left: 0.6%;">Date</th>
                             <th class="col-3" style="text-align: left;padding-left: 2%;">Description</th>
                             <th class="col-2" style="text-align: left;padding-left: 2%;">Interest</th>
-                            <th class="col-2" style="text-align: left;padding-left: 2%;">Principle</th>
+                            <th class="col-3" style="text-align: left;padding-left: 2%;">Principle</th>
                             <th class="col-2">Actn</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr ng-repeat="payment in filter.selectedDisplayLend.payments | orderBy: 'date':true">
-                            <td class="col-3" style="padding-left: 0.6%">{{formatDate(payment.date)}}</td>
+                            <td class="col-2" style="padding-left: 0.6%">{{formatDate(payment.date)}}</td>
                             <td class="col-3">{{payment.description}}</td>
                             <td class="col-2">{{payment.interest}}</td>
-                            <td class="col-2">{{payment.principle}}</td>
+                            <td class="col-3">{{payment.principle}}</td>
                             <td class="col-2">
                                 <button type="button" style="padding: 1px 4px 1px 4px;font-size: 15px;background-color: red;font-weight: 600" class="btn btn-primary"
                                         ng-click="deleteLendPayment(filter.selectedDisplayLend, payment)">Del</button>
