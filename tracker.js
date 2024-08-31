@@ -270,7 +270,9 @@ app.controller("appCtrl", function ($scope, $http, $q) {
         "totalAmount" : 0
     }
 
-    $scope.filter = { "selectedYear": new Date().getFullYear(), "selectedMonth": new Date().getMonth() , "selectedLoan" : null, "selectedDisplayLoan" : null, "selectedLend" : null, "selectedDisplayLend" : null};
+    $scope.filter = { "selectedYear": new Date().getFullYear(), "selectedMonth": new Date().getMonth() , 
+                      "selectedLoan" : null, "selectedDisplayLoan" : null, "selectedLend" : null, "selectedDisplayLend" : null,
+                       "completedLends" : false, "pendingLends" : true};
 
 
     $scope.DATABASE = "budget-tracker";
@@ -1400,12 +1402,15 @@ app.controller("appCtrl", function ($scope, $http, $q) {
     $scope.fetchLendDetails = function () {
         var loanStore = $scope.STORES.LEND_SUMMARY;
         $scope.lendSummaryList = [];
+        $scope.lendSummaryListFiltered = [];
         $scope.overallLendSummary = {
             "totalLent" : 0,
             "totalInterest" : 0,
             "totalPrincipal" : 0,
             "totalAmount" : 0,
-            "receivedAmount" : 0
+            "receivedAmount" : 0,
+            "receivedPrincipal" : 0,
+            "receivedInterest" : 0
         };
 
         var connection = initializeDBConnection();
@@ -1421,6 +1426,11 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                         return loan.id.toString().indexOf("test") == -1;
                     });
 
+                    $scope.lendSummaryListFiltered = $scope.lendSummaryList.filter(function (lendSummary) {
+                        var isCompleted = parseInt(lendSummary.loanRemaining) == 0;
+                        return $scope.filter.completedLends && isCompleted || $scope.filter.pendingLends && !isCompleted;
+                    });
+
                     $scope.lendSummaryList = $scope.lendSummaryList.filter(function (lendSummary) {
                         return isEligibleCandidateForSubFilters($scope.analyticsFilterKeyWords, lendSummary.loanName);
                     });
@@ -1432,6 +1442,9 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                         $scope.overallLendSummary.totalAmount = $scope.overallLendSummary.totalAmount + lendSummary.loanRemaining + $scope.calculateInterestByMonthAndDate(lendSummary);
 
                         $scope.overallLendSummary.receivedAmount = $scope.overallLendSummary.receivedAmount + fetchReceivedLendPayments(lendSummary);
+                        var receivedPrincipalAndInterest = fetchReceivedPrincipalAndInterest(lendSummary)
+                        $scope.overallLendSummary.receivedPrincipal = $scope.overallLendSummary.receivedPrincipal + receivedPrincipalAndInterest.receivedPrincipal;
+                        $scope.overallLendSummary.receivedInterest = $scope.overallLendSummary.receivedInterest + receivedPrincipalAndInterest.receivedInterest;
                     });
                 });
             };
@@ -1452,6 +1465,16 @@ app.controller("appCtrl", function ($scope, $http, $q) {
             totalReceivedAmount = totalReceivedAmount + parseInt(payment.principle) + parseInt(payment.interest);
         });
         return totalReceivedAmount;
+    }
+
+    function fetchReceivedPrincipalAndInterest(lendSummary) {
+        var receivedPrincipal = 0;
+        var receivedInterest = 0; 
+        angular.forEach(lendSummary.payments, function (payment) {
+            receivedPrincipal = receivedPrincipal + parseInt(payment.principle);
+            receivedInterest = receivedInterest + parseInt(payment.interest);
+        });
+        return {receivedPrincipal, receivedInterest};
     }
 
     $scope.fetchReceivedLendPayments = function () {
