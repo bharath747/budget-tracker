@@ -1430,6 +1430,9 @@ app.controller("appCtrl", function ($scope, $http, $q) {
                         var isCompleted = parseInt(lendSummary.loanRemaining) == 0;
                         return $scope.filter.completedLends && isCompleted || $scope.filter.pendingLends && !isCompleted;
                     });
+                    $scope.lendSummaryListFiltered = $scope.lendSummaryListFiltered.filter(function (lendSummary) {
+                        return isEligibleCandidateForSubFilters($scope.analyticsFilterKeyWords, lendSummary.loanName);
+                    });
 
                     $scope.lendSummaryList = $scope.lendSummaryList.filter(function (lendSummary) {
                         return isEligibleCandidateForSubFilters($scope.analyticsFilterKeyWords, lendSummary.loanName);
